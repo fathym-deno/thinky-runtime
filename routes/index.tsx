@@ -19,16 +19,17 @@ export default function Home() {
           deploys, and runs your apps.
         </p>
       </div>
+
+      <form class="max-w-screen-md mx-auto flex flex-col items-center justify-center text-center md:flex-row">
+        <input
+          class="w-full px-3 py-2 my-2 text-lg leading-tight text-gray-700 bg-white border rounded shadow appearance-none focus:outline-none focus:shadow-outline md:my-0 md:mr-2"
+          type="text"
+          placeholder="What can Thinky do for you today?"
+        />
+        <button class="w-full px-4 py-2 my-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline md:w-auto md:my-0">
+          Chat
+        </button>
+      </form>
     </div>
-    <form class="max-w-screen-md mx-auto flex flex-col items-center justify-center text-center md:flex-row">
-      <input
-        class="w-full px-3 py-2 my-2 text-lg leading-tight text-gray-700 bg-white border rounded shadow appearance-none focus:outline-none focus:shadow-outline md:my-0 md:mr-2"
-        type="text"
-        placeholder="What can Thinky do for you today?"
-      />
-      <button class="w-full px-4 py-2 my-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline md:w-auto md:my-0">
-        Chat
-      </button>
-    </form>
   );
 }
