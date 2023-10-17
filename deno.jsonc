@@ -21,6 +21,8 @@
   "imports": {
     "_@fathym/synaptic": "../synaptic/mod.ts",
     "@fathym/synaptic": "https://deno.land/x/fathym_synaptic@v0.0.31-integration/mod.ts",
+    "@fathym/atomic": "../fathym-atomic/mod.ts",
+    "_@fathym/atomic": "https://deno.land/x/fathym_atomic_design_kit@v0.0.12-integration",
     "$fresh/": "https://deno.land/x/fresh@1.5.2/",
     "preact": "https://esm.sh/preact@10.18.1",
     "preact/": "https://esm.sh/preact@10.18.1/",

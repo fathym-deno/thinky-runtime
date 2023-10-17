@@ -1,6 +1,6 @@
 import { Action, Input } from "@fathym/atomic";
 
-export default function Home() {
+export default function Thinky() {
   return (
     <div>
       <div class="px-4 py-8 mx-auto bg-blue-300">
@@ -13,7 +13,7 @@ export default function Home() {
             alt="the Fresh logo: a sliced lemon dripping with juice"
           />
 
-          <h1 class="text-4xl font-bold">Welcome to Fathym</h1>
+          <h1 class="text-4xl font-bold">Welcome to Thinky</h1>
 
           <h2 class="text-2xl my-4 font-bold">
             AI that doesn't just talk back.
