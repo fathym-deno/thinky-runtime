@@ -1,50 +1,60 @@
-import { Action, Input } from "@fathym/atomic";
+import { SendIcon } from "$fathym/atomic-icons";
+import { ChatInput } from "../../islands/_islands.tsx";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
-export default function Thinky() {
+export const handler: Handlers = {
+  async GET(req, ctx) {
+    // const resp = await synapticPluginDef.Handlers.ChatConvoLookup.GET!(req, ctx);
+
+    // const messages: ConversationMessage[] = await resp.json();
+
+    // messages.unshift({
+    //   From: "assistant",
+    //   Content:
+    //     "Welcome to Harbor Research, providing AI powered industry knowledge.",
+    // });
+
+    return ctx.render({
+      convoLookup: ctx.params.convoLookup,
+      // messages: messages,
+      newUserMessage: ctx.params.newUserMessage,
+      // functions: await PageBlocks.Functions(),
+      useOpenChat: !!ctx.params.useOpenChat,
+    });
+  },
+  async POST(req, ctx) {
+    const form = await req.formData();
+
+    ctx.params.newUserMessage = form.get("content")?.toString() || "";
+
+    ctx.params.useOpenChat = form.get("useOpenChat")?.toString() || "";
+
+    return handler.GET!(req, ctx);
+  },
+};
+
+export default function Thinky(props: PageProps) {
   return (
-    <div>
-      <div class="px-4 py-8 mx-auto bg-blue-300">
-        <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center text-center">
-          <img
-            class="my-6"
-            src="https://site-assets.plasmic.app/fd4e055b222749c879c6e042881ad65e.svg"
-            width="128"
-            height="128"
-            alt="the Fresh logo: a sliced lemon dripping with juice"
-          />
+    <div class="mx-3 my-8 flex flex-col md:flex-row">
+      <div class="w-full md:w-2/3 px-3 flex flex-col">
+        <div class="h-[calc(100vh-57.5px]">asdf</div>
 
-          <h1 class="text-4xl font-bold">Welcome to Thinky</h1>
-
-          <h2 class="text-2xl my-4 font-bold">
-            AI that doesn't just talk back.
-          </h2>
-
-          <p class="text-xl max-w-sm">
-            With access to code, cloud and everything in between, Thinky makes,
-            deploys, and runs your apps.
-          </p>
+        <div>
+          <ChatInput
+            // icon=">"
+            // icon={<SendIcon class="w-6 h-6" />}
+            action="/thinky"
+            // ref={chatInputRef}
+            // useOpenChat={false}
+            useOpenChat={props.data.useOpenChat}
+            placeholder="What can Thinky do for you today? (Shift + Enter for a new line)"
+          >
+            <SendIcon class="w-6 h-6" />
+          </ChatInput>
         </div>
       </div>
 
-      <form
-        method="post"
-        action="/thinky"
-        class="max-w-screen-md mx-auto flex flex-col items-center justify-center text-center md:flex-row p-8"
-      >
-        <Input
-          multiline
-          class="w-full px-3 py-2 my-2 text-lg leading-tight text-gray-700 bg-white border rounded shadow appearance-none focus:outline-none focus:shadow-outline md:my-0 md:mr-2"
-          type="text"
-          placeholder="What can Thinky do for you today?"
-        />
-
-        <Action
-          type="submit"
-          class="w-full px-4 py-2 my-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline md:w-auto md:my-0"
-        >
-          Chat
-        </Action>
-      </form>
+      <div class="w-full md:w-1/3 p-3">sdasdf</div>
     </div>
   );
 }
