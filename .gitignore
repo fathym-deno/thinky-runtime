@@ -1,9 +1,3 @@
-cov/
-build/
-coverage/
-lcov/
-target/
-
 # dotenv environment variable files
 .env
 .env.development.local
@@ -11,8 +5,12 @@ target/
 .env.production.local
 .env.local
 
-# Fresh build directory
-_fresh/
+# EaC Runtime build directory
+_eac-runtime/
+node_modules/
 
-# Deno KV
+# State 
 denoKv/
+
+# Testing
+cov/

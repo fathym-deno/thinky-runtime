@@ -1,8 +1,6 @@
-#!/usr/bin/env -S deno run -A --watch=static/,routes/
+import { start } from '@fathym/eac/runtime';
+import { config, configure } from './configs/eac-runtime.config.ts';
 
-import dev from "$fresh/dev.ts";
-import config from "./fresh.config.ts";
+Deno.env.set('EAC_RUNTIME_DEV', 'true');
 
-import "$std/dotenv/load.ts";
-
-await dev(import.meta.url, "./main.ts", config);
+await start(await config, configure);
