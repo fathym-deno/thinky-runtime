@@ -12,16 +12,15 @@
     },
     {
       "request": "launch",
-      "name": "Test Program",
+      "name": "Launch Test",
       "type": "node",
-      "program": "${workspaceFolder}/tests/tests.ts",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "deno.exe",
       "runtimeArgs": [
         "test",
-        "--config",
-        "./deno.jsonc",
-        "--inspect-wait"
+        "--inspect-wait",
+        "-A",
+        "tests/tests.ts"
       ],
       "attachSimplePort": 9229
     }
