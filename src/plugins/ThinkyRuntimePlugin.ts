@@ -79,7 +79,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
             Processor: {
               Type: 'SynapticCircuits',
               // Excludes: ['ent-chat:agent', 'ent-chat:action'],
-              Includes: ['thinky'],
+              Includes: ['thinky-public', 'thinky'],
             } as EaCSynapticCircuitsProcessor,
           },
         },

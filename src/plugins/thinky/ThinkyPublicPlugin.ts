@@ -60,6 +60,22 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
                 [START]: 'agent',
                 agent: END,
               },
+              Bootstrap: (r) =>
+                RunnableLambda.from((state) => {
+                  console.log('thinky-public:open-chat=>before');
+                  console.log('state');
+                  console.log(state);
+                  return state;
+                })
+                  .pipe(r)
+                  .pipe(
+                    RunnableLambda.from((state) => {
+                      console.log('thinky-public:open-chat=>after');
+                      console.log('state');
+                      console.log(state);
+                      return state;
+                    }),
+                  ),
             } as EaCGraphCircuitDetails,
           },
           'thinky-public:welcome-chat': {
@@ -114,13 +130,31 @@ Notes:
                   default: () => [],
                 },
                 Welcomed: {
-                  value: false,
+                  value: (_x: boolean, y: boolean) => y,
                 },
               },
               Neurons: {
                 'open-chat': {
                   Type: 'Circuit',
                   CircuitLookup: 'thinky-public:open-chat',
+                  Bootstrap: (r) =>
+                    RunnablePassthrough.assign({
+                      Messages: ({
+                        Messages: msgs,
+                      }: {
+                        Messages: BaseMessage[];
+                      }) => msgs?.slice(-1) || [],
+                    })
+                      .pipe(r)
+                      .pipe(
+                        RunnablePassthrough.assign({
+                          Messages: ({
+                            Messages: msgs,
+                          }: {
+                            Messages: BaseMessage[];
+                          }) => msgs?.slice(-1) || [],
+                        }),
+                      ),
                 } as EaCCircuitNeuron,
                 'welcome-chat': {
                   Type: 'Circuit',
@@ -152,6 +186,11 @@ Notes:
                 'welcome-chat': END,
                 'open-chat': END,
               },
+              Bootstrap: (r) =>
+                RunnablePassthrough.assign({
+                  Messages: ({ Input }: { Input: string }) =>
+                    Input ? [new HumanMessage(Input)] : [],
+                }).pipe(r),
             } as EaCGraphCircuitDetails,
           },
         },
