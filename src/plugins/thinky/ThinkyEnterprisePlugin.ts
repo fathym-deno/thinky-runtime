@@ -102,13 +102,15 @@ export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
 
                     let node = 'continue';
 
-                    if (
-                      (!('function_call' in lastMessage.additional_kwargs) ||
-                        !lastMessage.additional_kwargs.function_call) &&
-                      (!('tool_calls' in lastMessage.additional_kwargs) ||
-                        !lastMessage.additional_kwargs.tool_calls)
-                    ) {
-                      node = 'end';
+                    if (lastMessage) {
+                      if (
+                        (!('function_call' in lastMessage.additional_kwargs) ||
+                          !lastMessage.additional_kwargs.function_call) &&
+                        (!('tool_calls' in lastMessage.additional_kwargs) ||
+                          !lastMessage.additional_kwargs.tool_calls)
+                      ) {
+                        node = 'end';
+                      }
                     }
 
                     return node;
@@ -117,42 +119,6 @@ export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
                 action: 'agent',
               },
             } as EaCGraphCircuitDetails,
-          },
-          thinky: {
-            Details: {
-              Type: 'Linear',
-              Priority: 100,
-              InputSchema: z.object({
-                input: z.string(),
-              }),
-              // State: {
-              //   input: {
-              //     value: (x: string, y?: string) => (y ? y : x),
-              //     default: () => '',
-              //   },
-              // },
-              Neurons: {
-                '': {
-                  Type: 'Circuit',
-                  CircuitLookup: 'ent-chat',
-                  Bootstrap: (r) => {
-                    return RunnableLambda.from(
-                      (state: { input: string }) => {
-                        const { input } = state;
-
-                        return {
-                          messages: [new HumanMessage(input)],
-                        };
-                      },
-                    ).pipe(r);
-                  },
-                } as EaCCircuitNeuron,
-              },
-              // Edges: {
-              //   [START]: 'agent',
-              //   agent: END,
-              // },
-            } as EaCLinearCircuitDetails,
           },
         },
       },

@@ -3,13 +3,19 @@ import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
   EaCCircuitNeuron,
+  EaCDenoKVSaverPersistenceDetails,
   EaCGraphCircuitDetails,
   EaCLinearCircuitDetails,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import { BaseMessage, HumanMessage } from 'npm:@langchain/core/messages';
+import {
+  AIMessage,
+  BaseMessage,
+  HumanMessage,
+  HumanMessageChunk,
+} from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { RunnablePassthrough } from '../../../../synaptic/src/src.deps.ts';
@@ -23,11 +29,34 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
       Plugins: [],
       EaC: {
         $neurons: {},
+        AIs: {
+          thinky: {
+            Persistence: {
+              'thinky-public:open-chat': {
+                Details: {
+                  Type: 'DenoKVSaver',
+                  DatabaseLookup: 'thinky',
+                  RootKey: ['Thinky', 'Public', 'Open', 'Chat'],
+                  CheckpointTTL: 1 * 1000 * 60 * 60 * 24 * 7, // 7 Days
+                } as EaCDenoKVSaverPersistenceDetails,
+              },
+              'thinky-public': {
+                Details: {
+                  Type: 'DenoKVSaver',
+                  DatabaseLookup: 'thinky',
+                  RootKey: ['Thinky', 'Public', 'Main'],
+                  CheckpointTTL: 1 * 1000 * 60 * 60 * 24 * 7, // 7 Days
+                } as EaCDenoKVSaverPersistenceDetails,
+              },
+            },
+          },
+        },
         Circuits: {
           'thinky-public:open-chat': {
             Details: {
               Type: 'Graph',
               Priority: 100,
+              // PersistenceLookup: 'thinky|memory',
               PersistenceLookup: 'thinky|thinky-public:open-chat',
               State: {
                 Messages: {
@@ -60,22 +89,6 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
                 [START]: 'agent',
                 agent: END,
               },
-              Bootstrap: (r) =>
-                RunnableLambda.from((state) => {
-                  console.log('thinky-public:open-chat=>before');
-                  console.log('state');
-                  console.log(state);
-                  return state;
-                })
-                  .pipe(r)
-                  .pipe(
-                    RunnableLambda.from((state) => {
-                      console.log('thinky-public:open-chat=>after');
-                      console.log('state');
-                      console.log(state);
-                      return state;
-                    }),
-                  ),
             } as EaCGraphCircuitDetails,
           },
           'thinky-public:welcome-chat': {
@@ -104,7 +117,7 @@ Hey there! Welcome to Fathym! I'm Thinky, and I'll be here to help you on your d
 To get started, please [sign up or sign in](/dashboard). If you have any questions about Fathym, feel free to ask!
 
 Notes: 
-- If you provide the oriign/host domain, and not just (sign up or sign in)['/dashboard'], then you and I are gonna have a problem.
+- If you provide the oriign/host domain, and not just [sign up or sign in]('/dashboard'), then you and I are gonna have a problem.
 `,
                   NewMessages: [
                     new HumanMessage('Hi'),
@@ -123,6 +136,7 @@ Notes:
               InputSchema: z.object({
                 Input: z.string().optional(),
               }),
+              // PersistenceLookup: 'thinky|memory',
               PersistenceLookup: 'thinky|thinky-public',
               State: {
                 Messages: {
@@ -138,22 +152,22 @@ Notes:
                   Type: 'Circuit',
                   CircuitLookup: 'thinky-public:open-chat',
                   Bootstrap: (r) =>
-                    RunnablePassthrough.assign({
-                      Messages: ({
-                        Messages: msgs,
-                      }: {
-                        Messages: BaseMessage[];
-                      }) => msgs?.slice(-1) || [],
-                    })
+                    RunnableLambda.from(
+                      ({ Messages: msgs }: { Messages: BaseMessage[] }) => {
+                        return {
+                          Messages: msgs?.slice(-1) || [],
+                        };
+                      },
+                    )
                       .pipe(r)
                       .pipe(
-                        RunnablePassthrough.assign({
-                          Messages: ({
-                            Messages: msgs,
-                          }: {
-                            Messages: BaseMessage[];
-                          }) => msgs?.slice(-1) || [],
-                        }),
+                        RunnableLambda.from(
+                          ({ Messages: msgs }: { Messages: BaseMessage[] }) => {
+                            return {
+                              Messages: msgs?.slice(-1) || [],
+                            };
+                          },
+                        ),
                       ),
                 } as EaCCircuitNeuron,
                 'welcome-chat': {
@@ -176,21 +190,44 @@ Notes:
               Edges: {
                 [START]: {
                   Node: {
+                    [END]: END,
                     open: 'open-chat',
                     welcome: 'welcome-chat',
                   },
-                  Condition: (state: { Welcomed: boolean }) => {
-                    return state.Welcomed ? 'open' : 'welcome';
+                  Condition: (state: {
+                    Messages: BaseMessage[];
+                    Welcomed: boolean;
+                  }) => {
+                    const lastMsg = state.Messages?.slice(-1)[0];
+
+                    const node = state.Welcomed
+                      ? lastMsg &&
+                          (lastMsg instanceof HumanMessage ||
+                            lastMsg instanceof HumanMessageChunk)
+                        ? 'open'
+                        : END
+                      : 'welcome';
+
+                    return node;
                   },
                 },
                 'welcome-chat': END,
                 'open-chat': END,
               },
               Bootstrap: (r) =>
-                RunnablePassthrough.assign({
-                  Messages: ({ Input }: { Input: string }) =>
-                    Input ? [new HumanMessage(Input)] : [],
-                }).pipe(r),
+                RunnableLambda.from(({ Input }: { Input: string }) => {
+                  return {
+                    Messages: Input ? [new HumanMessage(Input)] : [],
+                  };
+                })
+                  .pipe(r)
+                  .pipe(
+                    RunnableLambda.from(
+                      (state: { Messages: BaseMessage[] }) => {
+                        return state;
+                      },
+                    ),
+                  ),
             } as EaCGraphCircuitDetails,
           },
         },

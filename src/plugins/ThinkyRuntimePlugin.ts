@@ -1,4 +1,8 @@
-import { EaCDenoKVDatabaseDetails, EaCKeepAliveModifierDetails } from '@fathym/eac';
+import {
+  EaCDenoKVDatabaseDetails,
+  EaCJWTValidationModifierDetails,
+  EaCKeepAliveModifierDetails,
+} from '@fathym/eac';
 import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
@@ -18,6 +22,8 @@ import {
 } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from './DefaultThinkyProcessorHandlerResolver.ts';
 import ThinkyPlugin from './ThinkyPlugin.ts';
+import { DefaultThinkyModifierHandlerResolver } from './DefaultThinkyModifierHandlerResolver.ts';
+import { eacSetSecrets } from 'https://deno.land/x/fathym_everything_as_code@v0.0.413/src/utils/eac/helpers.ts';
 
 export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -66,6 +72,11 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
                 Priority: 100,
                 // IsPrivate: true,
               },
+              'public-circuits': {
+                PathPattern: '/public-circuits*',
+                Priority: 100,
+                // IsPrivate: true,
+              },
             },
           },
         },
@@ -75,15 +86,46 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               Name: 'Circuits',
               Description: 'The API for accessing circuits',
             },
+            ModifierResolvers: {
+              jwtValidate: {
+                Priority: 900,
+              },
+              eac: {
+                Priority: 500,
+              },
+            },
+            Processor: {
+              Type: 'SynapticCircuits',
+              // Excludes: ['ent-chat:agent', 'ent-chat:action'],
+              Includes: ['thinky-dashboard', 'thinky-getting-started'],
+            } as EaCSynapticCircuitsProcessor,
+          },
+          'public-circuits': {
+            Details: {
+              Name: 'Public Circuits',
+              Description: 'The API for accessing public circuits',
+            },
             ModifierResolvers: {},
             Processor: {
               Type: 'SynapticCircuits',
               // Excludes: ['ent-chat:agent', 'ent-chat:action'],
-              Includes: ['thinky-public', 'thinky'],
+              Includes: ['thinky-public'],
             } as EaCSynapticCircuitsProcessor,
           },
         },
         Modifiers: {
+          eac: {
+            Details: {
+              Type: 'EaC',
+            },
+          },
+          jwtValidate: {
+            Details: {
+              Type: 'JWTValidation',
+              Name: 'Validate JWT',
+              Description: 'Validate incoming JWTs to restrict access.',
+            } as EaCJWTValidationModifierDetails,
+          },
           keepAlive: {
             Details: {
               Type: 'KeepAlive',
@@ -94,6 +136,22 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
           },
         },
         Databases: {
+          cache: {
+            Details: {
+              Type: 'DenoKV',
+              Name: 'Local Cache',
+              Description: 'The Deno KV database to use for local caching.',
+              DenoKVPath: Deno.env.get('LOCAL_CACHE_DENO_KV_PATH') || undefined,
+            } as EaCDenoKVDatabaseDetails,
+          },
+          eac: {
+            Details: {
+              Type: 'DenoKV',
+              Name: 'EaC',
+              Description: 'The Deno KV database to use for EaC',
+              DenoKVPath: Deno.env.get('EAC_DENO_KV_PATH') || undefined,
+            } as EaCDenoKVDatabaseDetails,
+          },
           thinky: {
             Details: {
               Type: 'DenoKV',
@@ -146,22 +204,6 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               },
             },
             Persistence: {
-              'thinky-public:open-chat': {
-                Details: {
-                  Type: 'DenoKVSaver',
-                  DatabaseLookup: 'thinky',
-                  RootKey: ['Thinky', 'Public', 'Open', 'Chat'],
-                  CheckpointTTL: 1 * 1000 * 60 * 60 * 24 * 7, // 7 Days
-                } as EaCDenoKVSaverPersistenceDetails,
-              },
-              'thinky-public': {
-                Details: {
-                  Type: 'DenoKVSaver',
-                  DatabaseLookup: 'thinky',
-                  RootKey: ['Thinky', 'Public'],
-                  CheckpointTTL: 1 * 1000 * 60 * 60 * 24 * 7, // 7 Days
-                } as EaCDenoKVSaverPersistenceDetails,
-              },
               memory: {
                 Details: {
                   Type: 'MemorySaver',
@@ -181,6 +223,10 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
       },
       IoC: new IoCContainer(),
     };
+
+    pluginConfig.IoC!.Register(DefaultThinkyModifierHandlerResolver, {
+      Type: pluginConfig.IoC!.Symbol('ModifierHandlerResolver'),
+    });
 
     pluginConfig.IoC!.Register(DefaultThinkyProcessorHandlerResolver, {
       Type: pluginConfig.IoC!.Symbol('ProcessorHandlerResolver'),

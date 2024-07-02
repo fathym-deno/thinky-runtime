@@ -5,6 +5,7 @@ import { EaCLLMNeuron } from '@fathym/synaptic';
 import MinervaPlugin from './thinky/MinervaPlugin.ts';
 import ThinkyEnterprisePlugin from './thinky/ThinkyEnterprisePlugin.ts';
 import ThinkyPublicPlugin from './thinky/ThinkyPublicPlugin.ts';
+import ThinkyDashboardPlugin from './thinky/ThinkyDashboardPlugin.ts';
 
 export default class ThinkyPlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -14,6 +15,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
       Name: 'ThinkyPlugin',
       Plugins: [
         new ThinkyPublicPlugin(),
+        new ThinkyDashboardPlugin(),
         new ThinkyEnterprisePlugin(),
         new MinervaPlugin(),
       ],
@@ -23,11 +25,11 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
             'thinky-llm': {
               Type: 'LLM',
               LLMLookup: `thinky|thinky`,
-            } as EaCLLMNeuron as any,
+            } as EaCLLMNeuron,
             'thinky-llm-tooled': {
               Type: 'LLM',
               LLMLookup: `thinky|thinky-tooled`,
-            } as EaCLLMNeuron as any,
+            } as EaCLLMNeuron,
           },
           $remotes: {
             // 'remote-test': 'http://localhost:6131/circuits/'
