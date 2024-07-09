@@ -7,7 +7,7 @@ import {
   HumanMessage,
   Runnable,
 } from '../test.deps.ts';
-import { buildTestIoC } from './test-eac-setup.ts';
+import { buildTestIoC } from '../test-eac-setup.ts';
 
 Deno.test('Public Thinky Circuits Tests', async (t) => {
   const eac = {} as EverythingAsCodeSynaptic & EverythingAsCodeDatabases;

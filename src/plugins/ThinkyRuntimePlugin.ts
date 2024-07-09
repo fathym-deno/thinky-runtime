@@ -1,4 +1,6 @@
 import {
+  EaCAzureADB2CProviderDetails,
+  EaCAzureADProviderDetails,
   EaCDenoKVDatabaseDetails,
   EaCJWTValidationModifierDetails,
   EaCKeepAliveModifierDetails,
@@ -24,6 +26,8 @@ import { DefaultThinkyProcessorHandlerResolver } from './DefaultThinkyProcessorH
 import ThinkyPlugin from './ThinkyPlugin.ts';
 import { DefaultThinkyModifierHandlerResolver } from './DefaultThinkyModifierHandlerResolver.ts';
 import { eacSetSecrets } from 'https://deno.land/x/fathym_everything_as_code@v0.0.413/src/utils/eac/helpers.ts';
+import ThinkyMSALPlugin from './ThinkyMSALPlugin.ts';
+import { EaCMSALProcessor } from '@fathym/msal';
 
 export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -36,6 +40,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
         new FathymEaCServicesPlugin(),
         new ThinkyPlugin(),
         new FathymSynapticPlugin(),
+        new ThinkyMSALPlugin(),
       ],
       EaC: {
         Projects: {
@@ -70,12 +75,14 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               circuits: {
                 PathPattern: '/circuits*',
                 Priority: 100,
-                // IsPrivate: true,
+              },
+              msal: {
+                PathPattern: '/connect/azure/*',
+                Priority: 500,
               },
               'public-circuits': {
                 PathPattern: '/public-circuits*',
                 Priority: 100,
-                // IsPrivate: true,
               },
             },
           },
@@ -99,6 +106,29 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               // Excludes: ['ent-chat:agent', 'ent-chat:action'],
               Includes: ['thinky-dashboard', 'thinky-getting-started'],
             } as EaCSynapticCircuitsProcessor,
+          },
+          msal: {
+            Details: {
+              Name: 'OAuth Site',
+              Description: 'The site for use in OAuth workflows for a user',
+            },
+            Processor: {
+              Type: 'MSAL',
+              Config: {
+                MSALSignInOptions: {
+                  Scopes: [
+                    'https://management.core.windows.net//user_impersonation',
+                  ], // Your desired scopes go here
+                  RedirectURI: '/dashboard/thinky/connect/azure/callback',
+                  SuccessRedirect: '/dashboard',
+                },
+                MSALSignOutOptions: {
+                  ClearSession: false,
+                  PostLogoutRedirectUri: '/',
+                },
+              },
+              ProviderLookup: 'azure',
+            } as EaCMSALProcessor,
           },
           'public-circuits': {
             Details: {
@@ -153,6 +183,14 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               DenoKVPath: Deno.env.get('EAC_DENO_KV_PATH') || undefined,
             } as EaCDenoKVDatabaseDetails,
           },
+          oauth: {
+            Details: {
+              Type: 'DenoKV',
+              Name: 'OAuth',
+              Description: 'The Deno KV database to use for EaC',
+              DenoKVPath: Deno.env.get('OAUTH_DENO_KV_PATH') || undefined,
+            } as EaCDenoKVDatabaseDetails,
+          },
           thinky: {
             Details: {
               Type: 'DenoKV',
@@ -160,6 +198,34 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               Description: 'The Deno KV database to use for thinky',
               DenoKVPath: Deno.env.get('THINKY_DENO_KV_PATH') || undefined,
             } as EaCDenoKVDatabaseDetails,
+          },
+        },
+        Providers: {
+          adb2c: {
+            DatabaseLookup: 'oauth',
+            Details: {
+              Name: 'Azure ADB2C OAuth Provider',
+              Description:
+                'The provider used to connect with our azure adb2c instance',
+              ClientID: Deno.env.get('AZURE_ADB2C_CLIENT_ID')!,
+              ClientSecret: Deno.env.get('AZURE_ADB2C_CLIENT_SECRET')!,
+              Scopes: ['openid', Deno.env.get('AZURE_ADB2C_CLIENT_ID')!],
+              Domain: Deno.env.get('AZURE_ADB2C_DOMAIN')!,
+              PolicyName: Deno.env.get('AZURE_ADB2C_POLICY')!,
+              TenantID: Deno.env.get('AZURE_ADB2C_TENANT_ID')!,
+              IsPrimary: true,
+            } as EaCAzureADB2CProviderDetails,
+          },
+          azure: {
+            DatabaseLookup: 'oauth',
+            Details: {
+              Name: 'Azure OAuth Provider',
+              Description: 'The provider used to connect with Azure',
+              ClientID: Deno.env.get('AZURE_AD_CLIENT_ID')!,
+              ClientSecret: Deno.env.get('AZURE_AD_CLIENT_SECRET')!,
+              Scopes: ['openid'],
+              TenantID: Deno.env.get('AZURE_AD_TENANT_ID')!, //common
+            } as EaCAzureADProviderDetails,
           },
         },
         AIs: {

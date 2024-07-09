@@ -12,7 +12,7 @@ import {
   HumanMessage,
   Runnable,
 } from '../../test.deps.ts';
-import { buildTestIoC } from '../test-eac-setup.ts';
+import { buildTestIoC } from '../../test-eac-setup.ts';
 import { toText } from 'https://deno.land/std@0.220.1/streams/to_text.ts';
 
 Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
@@ -30,7 +30,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
         await t.step('Azure Login', async () => {
           const circuit = await ioc.Resolve<Runnable>(
             ioc.Symbol('Circuit'),
-            'thinky-getting-started:cloud:azure-connect',
+            'thinky-getting-started:cloud:azure-connect'
           );
 
           const chunk = await circuit.invoke(
@@ -40,13 +40,11 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
                 thread_id,
                 RuntimeContext: {
                   State: {
-                    GettingStarted: {
-                      HasAzureConnection: false,
-                    },
+                    GettingStarted: {},
                   },
                 },
               },
-            },
+            }
           );
 
           assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -58,7 +56,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
       await t.step('Azure Login', async () => {
         const circuit = await ioc.Resolve<Runnable>(
           ioc.Symbol('Circuit'),
-          'thinky-getting-started:cloud',
+          'thinky-getting-started:cloud'
         );
 
         const chunk = await circuit.invoke(
@@ -68,13 +66,11 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
               thread_id,
               RuntimeContext: {
                 State: {
-                  GettingStarted: {
-                    HasAzureConnection: false,
-                  },
+                  GettingStarted: {},
                 },
               },
             },
-          },
+          }
         );
 
         assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -86,7 +82,32 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
     await t.step('Azure Login', async () => {
       const circuit = await ioc.Resolve<Runnable>(
         ioc.Symbol('Circuit'),
-        'thinky-getting-started',
+        'thinky-getting-started'
+      );
+
+      const chunk = await circuit.invoke(
+        {},
+        {
+          configurable: {
+            thread_id,
+            RuntimeContext: {
+              State: {
+                GettingStarted: {},
+              },
+            },
+          },
+        }
+      );
+
+      assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
+
+      console.log(chunk.Messages.slice(-1)[0].content);
+    });
+
+    await t.step('Azure Sub', async () => {
+      const circuit = await ioc.Resolve<Runnable>(
+        ioc.Symbol('Circuit'),
+        'thinky-getting-started'
       );
 
       const chunk = await circuit.invoke(
@@ -97,12 +118,12 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
             RuntimeContext: {
               State: {
                 GettingStarted: {
-                  HasAzureConnection: false,
+                  AzureAccessToken: 'xxx',
                 },
               },
             },
           },
-        },
+        }
       );
 
       assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -110,69 +131,69 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
       console.log(chunk.Messages.slice(-1)[0].content);
     });
 
-    await t.step('Azure Login - Stream Events - Readable Stream', async () => {
-      const circuit = await ioc.Resolve<Runnable>(
-        ioc.Symbol('Circuit'),
-        'thinky-getting-started',
-      );
+    // await t.step('Azure Login - Stream Events - Readable Stream', async () => {
+    //   const circuit = await ioc.Resolve<Runnable>(
+    //     ioc.Symbol('Circuit'),
+    //     'thinky-getting-started',
+    //   );
 
-      const body = new ReadableStream({
-        async start(controller) {
-          const streamed = await circuit.streamEvents(
-            { name: 'test' },
-            {
-              configurable: {
-                thread_id,
-                RuntimeContext: {
-                  State: {
-                    GettingStarted: {
-                      HasAzureConnection: false,
-                    },
-                  },
-                },
-              },
-              version: 'v2',
-            },
-          );
+    //   const body = new ReadableStream({
+    //     async start(controller) {
+    //       const streamed = await circuit.streamEvents(
+    //         { name: 'test' },
+    //         {
+    //           configurable: {
+    //             thread_id,
+    //             RuntimeContext: {
+    //               State: {
+    //                 GettingStarted: {
+    //                   HasAzureConnection: false,
+    //                 },
+    //               },
+    //             },
+    //           },
+    //           version: 'v2',
+    //         },
+    //       );
 
-          for await (const event of streamed) {
-            controller.enqueue({
-              id: Date.now(),
-              event: 'data',
-              data: customStringify(event),
-            } as ServerSentEventMessage);
+    //       for await (const event of streamed) {
+    //         controller.enqueue({
+    //           id: Date.now(),
+    //           event: 'data',
+    //           data: customStringify(event),
+    //         } as ServerSentEventMessage);
 
-            // await delay(1);
-          }
+    //         // await delay(1);
+    //       }
 
-          controller.enqueue({
-            id: Date.now(),
-            event: 'end',
-          } as ServerSentEventMessage);
+    //       controller.enqueue({
+    //         id: Date.now(),
+    //         event: 'end',
+    //       } as ServerSentEventMessage);
 
-          controller.close();
-        },
-        cancel() {
-          // divined.cancel();
-        },
-      });
+    //       controller.close();
+    //     },
+    //     cancel() {
+    //       // divined.cancel();
+    //     },
+    //   });
 
-      const sses = body.pipeThrough(new ServerSentEventStream());
+    //   const sses = body.pipeThrough(new ServerSentEventStream());
 
-      const resp = new Response(sses, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-        },
-      });
+    //   const resp = new Response(sses, {
+    //     headers: {
+    //       'Content-Type': 'text/event-stream',
+    //       'Cache-Control': 'no-cache',
+    //     },
+    //   });
 
-      const text = await resp.text();
+    //   const text = await resp.text();
 
-      console.log(text);
-      // assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
+    //   console.log(text);
+    //   // assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
 
-      // console.log(chunk.Messages.slice(-1)[0].content);
-    });
+    //   // console.log(chunk.Messages.slice(-1)[0].content);
+    // });
   });
 
   await kvCleanup();

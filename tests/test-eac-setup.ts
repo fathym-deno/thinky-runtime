@@ -1,6 +1,6 @@
 // TODO(ttrichar): MOVE TO @fathym/eac/runtim ref after EaCRuntimePluginDef export bug is fixed
 import { EaCRuntimePluginDef } from '@fathym/eac/runtime/src/runtime/config/EaCRuntimePluginDef.ts';
-import { eacAIsRoot, eacDatabases } from '../eacs.ts';
+import { eacAIsRoot, eacDatabases } from './eacs.ts';
 import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
@@ -10,7 +10,7 @@ import {
   FathymEaCServicesPlugin,
   FathymSynapticPlugin,
   IoCContainer,
-} from '../test.deps.ts';
+} from './test.deps.ts';
 import { merge } from '@fathym/common';
 
 export const AI_LOOKUP = 'thinky';

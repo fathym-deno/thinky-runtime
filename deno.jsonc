@@ -22,12 +22,15 @@
     "$fathym/atomic-icons": "./build/iconset/icons/_exports.ts",
     "@fathym/atomic-icons/browser": "https://deno.land/x/fathym_atomic_icons@v0.0.37/browser.ts",
     "@fathym/common": "https://deno.land/x/fathym_common@v0.0.184/mod.ts",
+    "@fathym/common/oauth": "https://deno.land/x/fathym_common@v0.0.184/oauth.ts",
     "@fathym/eac": "https://deno.land/x/fathym_everything_as_code@v0.0.413/mod.ts",
     "@fathym/eac/api": "https://deno.land/x/fathym_everything_as_code_api@v0.0.42/mod.ts",
     "@fathym/eac/runtime": "https://deno.land/x/fathym_eac_runtime@v0.0.258/mod.ts",
     "@fathym/eac/runtime/": "https://deno.land/x/fathym_eac_runtime@v0.0.258/",
     "@fathym/eac/runtime/browser": "https://deno.land/x/fathym_eac_runtime@v0.0.258/browser.ts",
     "@fathym/ioc": "https://deno.land/x/fathym_ioc@v0.0.10/mod.ts",
+    "@fathym/msal": "../msal/mod.ts",
+    // "@fathym/msal": "https://deno.land/x/msal@v0.0.28/mod.ts",
     "@fathym/synaptic": "../synaptic/mod.ts",
     // "@fathym/synaptic": "https://deno.land/x/fathym_synaptic@v0.0.56/mod.ts",
     "preact": "https://esm.sh/preact@10.20.1",
@@ -38,34 +41,18 @@
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
     "tailwindcss/unimportant": "npm:tailwindcss-unimportant@2.1.1"
   },
-  "exclude": [
-    "**/_eac-runtime/*"
-  ],
+  "exclude": ["**/_eac-runtime/*"],
   "lint": {
-    "include": [
-      "apps/",
-      "configs/",
-      "src/",
-      "tests/"
-    ],
+    "include": ["apps/", "configs/", "src/", "tests/"],
     "exclude": [],
     "rules": {
-      "tags": [
-        "recommended"
-      ],
-      "include": [
-        "ban-untagged-todo"
-      ],
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
       "exclude": []
     }
   },
   "fmt": {
-    "include": [
-      "apps/",
-      "configs/",
-      "src/",
-      "tests/"
-    ],
+    "include": ["apps/", "configs/", "src/", "tests/"],
     "exclude": [],
     "indentWidth": 2,
     "lineWidth": 100,
@@ -74,9 +61,7 @@
     "singleQuote": true,
     "useTabs": false
   },
-  "unstable": [
-    "kv"
-  ],
+  "unstable": ["kv"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
