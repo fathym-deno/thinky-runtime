@@ -136,16 +136,12 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
             'fathym:eac:status': {
               Type: 'Tool',
               ToolLookup: 'thinky|fathym:eac:status',
-              Neurons: {
-                '': {
-                  Bootstrap: (r) =>
-                    r.pipe(
-                      RunnableLambda.from((toolRes: string) => {
-                        return JSON.parse(toolRes);
-                      })
-                    ),
-                } as Partial<EaCNeuron>,
-              } as Partial<EaCNeuron>,
+              Bootstrap: (r) =>
+                r.pipe(
+                  RunnableLambda.from((toolRes: string) => {
+                    return JSON.parse(toolRes);
+                  })
+                ),
             } as EaCToolNeuron,
           },
           'fathym:eac:wait-for-status':
@@ -169,18 +165,14 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
           'status:tool': [
             'fathym:eac:status',
             {
-              Bootstrap: (r) =>
-                RunnableLambda.from((state: FathymEaCStatusGraphState) => {
-                  return state.Status;
-                })
-                  .pipe(r)
-                  .pipe(
-                    RunnableLambda.from((status: EaCStatus) => {
-                      return {
-                        Status: status,
-                      } as FathymEaCStatusGraphState;
-                    })
-                  ),
+              BootstrapInput(state: FathymEaCStatusGraphState) {
+                return state.Status;
+              },
+              BootstrapOutput(status: EaCStatus) {
+                return {
+                  Status: status,
+                } as FathymEaCStatusGraphState;
+              },
             } as Partial<EaCNeuron>,
           ],
           'status:delay': {
@@ -193,26 +185,37 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
           } as Partial<EaCNeuron>,
           'status:message': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates.
+            SystemMessage: `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates. Make sure your answer always starts with two new markdown, to keep information separated.
             
 Operation Context:
 {Operation}`,
             Messages: [new MessagesPlaceholder('Messages')],
             NewMessages: [
-              ['human', 'Can you help summarize my current EaC Status:'],
+              [
+                'human',
+                'Can you help summarize my current EaC Status in a super concise way:',
+              ],
               ['human', '{Status}'],
             ],
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage) => {
-                  return {
-                    Messages: [msg],
-                  } as FathymEaCStatusGraphState;
-                })
-              ),
+            BootstrapInput(state: FathymEaCStatusGraphState) {
+              const msgs = state.Messages?.length
+                ? [...state.Messages.slice(2), ...state.Messages.slice(-10)]
+                : [];
+
+              return {
+                ...state,
+                Messages: msgs,
+                Status: JSON.stringify(state.Status),
+              };
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              } as FathymEaCStatusGraphState;
+            },
           } as EaCChatPromptNeuron,
         },
         Edges: {
@@ -236,41 +239,29 @@ Operation Context:
           'status:message': 'status:delay',
           'status:delay': 'status:tool',
         },
-        Bootstrap: (r) =>
-          RunnableLambda.from(
-            (
-              {
-                Delay,
-                Messages,
-                Operation,
-                Status,
-              }: FathymEaCStatusInputSchema,
-              cfg
-            ) => {
-              if (typeof Status === 'string') {
-                Status = JSON.parse(Status) as EaCStatus;
-              }
+        BootstrapInput(
+          { Delay, Messages, Operation, Status }: FathymEaCStatusInputSchema,
+          _,
+          cfg
+        ) {
+          if (typeof Status === 'string') {
+            Status = JSON.parse(Status) as EaCStatus;
+          }
 
-              cfg!.configurable!.delay = Delay ?? 5000;
+          cfg!.configurable!.delay = Delay ?? 5000;
 
-              return {
-                Messages,
-                Operation,
-                Status,
-              } as FathymEaCStatusGraphState;
-            }
-          )
-            .pipe(r)
-            .pipe(
-              RunnableLambda.from(
-                ({ Messages, Status }: FathymEaCStatusGraphState) => {
-                  return {
-                    Messages,
-                    Status,
-                  };
-                }
-              )
-            ),
+          return {
+            Messages,
+            Operation,
+            Status,
+          } as FathymEaCStatusGraphState;
+        },
+        BootstrapOutput({ Messages, Status }: FathymEaCStatusGraphState) {
+          return {
+            Messages,
+            Status,
+          } as FathymEaCStatusGraphState;
+        },
       } as EaCGraphCircuitDetails,
     };
   }

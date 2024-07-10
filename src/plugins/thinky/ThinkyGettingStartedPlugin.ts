@@ -41,7 +41,10 @@ import {
   EaCCloudAzureDetails,
   EaCCloudResourceFormatDetails,
 } from '@fathym/eac';
-import { FathymEaCStatusPlugin } from './FathymEaCStatusPlugin.ts';
+import {
+  FathymEaCStatusInputSchema,
+  FathymEaCStatusPlugin,
+} from './FathymEaCStatusPlugin.ts';
 
 export const ThinkyGettingStartedCircuitInputSchema = z.object({
   Input: z.string().optional(),
@@ -56,11 +59,15 @@ export const ThinkyGettingStartedGraphStateSchema = {
     value: (_x: boolean, y: boolean) => y,
     default: () => false,
   },
-  HasConfiguredCalz: {
+  HasConfiguredCALZ: {
     value: (_x: boolean, y: boolean) => y,
     default: () => false,
   },
   HasConfiguredCloud: {
+    value: (_x: boolean, y: boolean) => y,
+    default: () => false,
+  },
+  HasConfiguredInfrastructure: {
     value: (_x: boolean, y: boolean) => y,
     default: () => false,
   },
@@ -116,6 +123,48 @@ export const CloudCALZSchema = z.object({
 } as TypeToZod<Omit<CloudCALZGraphState, 'CALZCreated' | 'Messages'>>);
 
 export type CloudCALZSchema = z.infer<typeof CloudCALZSchema>;
+
+export const CloudInfrastructureGraphState = {
+  Confirmed: {
+    value: (_x: boolean, y: boolean) => y,
+    default: () => false,
+  },
+  InfrastructureCreated: {
+    value: (_x: boolean, y: boolean) => y,
+    default: () => false,
+  },
+  Messages: {
+    value: (x?: BaseMessage[], y?: BaseMessage[]) => x?.concat(y || []),
+    default: () => [],
+  },
+  ResourceLookup: {
+    value: (_x: string, y: string) => y,
+    default: () => '',
+  },
+};
+
+export type CloudInfrastructureGraphState = InferSynapticState<
+  typeof CloudInfrastructureGraphState
+>;
+
+export const CloudInfrastructureSchema = z.object({
+  Confirmed: z
+    .boolean()
+    .optional()
+    .describe(
+      'This value should be set to true, only once a user has explicitly confirmed their selections for `ResourceLookup`, and that the `ResourceLookup` is in alphanumeric, lowered snake-case (with hyphens (-)) format.'
+    ),
+  ResourceLookup: z
+    .string()
+    .optional()
+    .describe(
+      'This is a unique lookup/name that a user can choose for their AI resource, and must be in alphanumeric, lowered snake-case (with hyphens (-)) to work.'
+    ),
+} as TypeToZod<Omit<CloudInfrastructureGraphState, 'InfrastructureCreated' | 'Messages'>>);
+
+export type CloudInfrastructureSchema = z.infer<
+  typeof CloudInfrastructureSchema
+>;
 
 export const AzureConnectGraphState = {
   BillingAccount: {
@@ -338,6 +387,90 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                   },
                 } as EaCDynamicToolDetails,
               },
+              'thinky-getting-started:infrastructure': {
+                Details: {
+                  Type: 'Dynamic',
+                  Name: 'calz',
+                  Description:
+                    'Use this tool to commit an AI Infrastructure Launch Pad to a resource group for the user.',
+                  Schema: CloudInfrastructureSchema,
+                  Action: async (input: CloudInfrastructureSchema, _, cfg) => {
+                    const state = cfg!.configurable!.RuntimeContext.State;
+
+                    const gettingStarted: ThinkyGettingStartedState =
+                      state.GettingStarted;
+
+                    const jwt = state.JWT as string;
+
+                    const cloudLookup = Object.keys(state.EaC!.Clouds || {})[0];
+
+                    const resGroupLookup =
+                      gettingStarted.CurrentCALZ!.ResourceGroupLookup;
+
+                    const resLookup = input.ResourceLookup;
+
+                    const shortName = resGroupLookup
+                      .split('-')
+                      .map((p) => p.charAt(0))
+                      .join('');
+
+                    const details = state.EaC!.Clouds![cloudLookup]
+                      .Details as EaCCloudAzureDetails;
+
+                    const servicePrincipalId = details!.ID;
+
+                    const commitEaC: FathymEaC = {
+                      EnterpriseLookup: state.EnterpriseLookup,
+                      Clouds: {
+                        [cloudLookup]: {
+                          ResourceGroups: {
+                            [resGroupLookup]: {
+                              Resources: {
+                                [resLookup]: {
+                                  Details: {
+                                    Type: 'Format',
+                                    Name: 'AI Infrastructure Launch Pad',
+                                    Description:
+                                      'The AI Infrastructure Launch Pad.',
+                                    Order: 1,
+                                    Template: {
+                                      Content:
+                                        'https://raw.githubusercontent.com/lowcodeunit/infrastructure/master/templates/ai/template.jsonc',
+                                      Parameters:
+                                        'https://raw.githubusercontent.com/lowcodeunit/infrastructure/master/templates/ai/parameters.jsonc',
+                                    },
+                                    Data: {
+                                      CloudLookup: cloudLookup,
+                                      ResourceLookup: resLookup,
+                                      ShortName: shortName,
+                                    },
+                                    Outputs: {},
+                                  } as EaCCloudResourceFormatDetails,
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    };
+
+                    try {
+                      const eacSvc = await loadEaCSvc(jwt);
+
+                      const commitResp = await eacSvc.Commit(commitEaC, 60);
+
+                      const status = await eacSvc.Status(
+                        commitResp.EnterpriseLookup,
+                        commitResp.CommitID
+                      );
+
+                      return JSON.stringify(status);
+                    } catch (ex) {
+                      return JSON.stringify(ex);
+                    }
+                  },
+                } as EaCDynamicToolDetails,
+              },
             },
           },
         },
@@ -346,22 +479,23 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             'thinky-getting-started:tools:cloud:azure-connect': {
               Type: 'Tool',
               ToolLookup: 'thinky|thinky-getting-started:cloud-azure-connect',
-              Bootstrap: (r) =>
-                r.pipe(
-                  RunnableLambda.from((toolRes: string) => {
-                    return { Status: JSON.parse(toolRes) };
-                  })
-                ),
+              BootstrapOutput(toolRes: string) {
+                return { Status: JSON.parse(toolRes) };
+              },
             } as EaCToolNeuron,
             'thinky-getting-started:tools:cloud:calz': {
               Type: 'Tool',
               ToolLookup: 'thinky|thinky-getting-started:calz',
-              Bootstrap: (r) =>
-                r.pipe(
-                  RunnableLambda.from((toolRes: string) => {
-                    return { Status: JSON.parse(toolRes) };
-                  })
-                ),
+              BootstrapOutput(toolRes: string) {
+                return { Status: JSON.parse(toolRes) };
+              },
+            } as EaCToolNeuron,
+            'thinky-getting-started:tools:cloud:infrastructure': {
+              Type: 'Tool',
+              ToolLookup: 'thinky|thinky-getting-started:infrastructure',
+              BootstrapOutput(toolRes: string) {
+                return { Status: JSON.parse(toolRes) };
+              },
             } as EaCToolNeuron,
           },
           'thinky-getting-started:cloud:azure-connect:subscriptions':
@@ -371,6 +505,10 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
           'thinky-getting-started:cloud:calz:resource-group':
             this.buildCloudCALZResourceGroupCircuit(),
           'thinky-getting-started:cloud:calz': this.buildCloudCALZCircuit(),
+          'thinky-getting-started:cloud:infrastructure:details':
+            this.buildCloudInfrastructureDetailsCircuit(),
+          'thinky-getting-started:cloud:infrastructure':
+            this.buildCloudInfrastructureCircuit(),
           'thinky-getting-started:cloud': this.buildCloudCircuit(),
           'thinky-getting-started': this.buildGettingStartedCircuit(),
         },
@@ -395,22 +533,40 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
           calz: {
             Type: 'Circuit',
             CircuitLookup: 'thinky-getting-started:cloud:calz',
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from(
-                  (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
-                    const gettingStarted: ThinkyGettingStartedState =
-                      cfg?.configurable?.RuntimeContext.State.GettingStarted;
+            BootstrapOutput(
+              state: ThinkyGettingStartedGraphStateSchema,
+              _,
+              cfg
+            ) {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
 
-                    return {
-                      ...state,
-                      Messages: !gettingStarted.CurrentCloud
-                        ? [state.Messages.slice(-1)[0]]
-                        : state.Messages,
-                    };
-                  }
-                )
-              ),
+              return {
+                ...state,
+                Messages: !gettingStarted.CurrentCloud
+                  ? [state.Messages.slice(-1)[0]]
+                  : state.Messages,
+              };
+            },
+          } as EaCCircuitNeuron,
+          infra: {
+            Type: 'Circuit',
+            CircuitLookup: 'thinky-getting-started:cloud:infrastructure',
+            BootstrapOutput(
+              state: ThinkyGettingStartedGraphStateSchema,
+              _,
+              cfg
+            ) {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+
+              return {
+                ...state,
+                Messages: !gettingStarted.CurrentCALZ
+                  ? [state.Messages.slice(-1)[0]]
+                  : state.Messages,
+              };
+            },
           } as EaCCircuitNeuron,
         },
         Edges: {
@@ -418,14 +574,17 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             Node: {
               'azure-connect': 'azure-connect',
               calz: 'calz',
+              infra: 'infra',
               [END]: END,
             },
-            Condition: (_, cfg) => {
+            Condition: (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
               const gettingStarted: ThinkyGettingStartedState =
                 cfg?.configurable?.RuntimeContext.State.GettingStarted;
 
-              return gettingStarted.CurrentCALZ
+              return state.HasConfiguredInfrastructure
                 ? END
+                : gettingStarted.CurrentCALZ
+                ? 'infra'
                 : gettingStarted.CurrentCloud
                 ? 'calz'
                 : 'azure-connect';
@@ -445,21 +604,30 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                 : END;
             },
           },
-          calz: END,
-        },
-        Bootstrap: (r) =>
-          r.pipe(
-            RunnableLambda.from(
-              (state: ThinkyGettingStartedGraphStateSchema) => {
-                const lastAiMsgs = lastAiNotHumanMessages(state.Messages);
+          calz: {
+            Node: {
+              infra: 'infra',
+              [END]: END,
+            },
+            Condition: (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
 
-                return {
-                  ...state,
-                  Messages: lastAiMsgs,
-                };
-              }
-            )
-          ),
+              return state.HasConfiguredCALZ && !gettingStarted.CurrentCALZ
+                ? 'infra'
+                : END;
+            },
+          },
+          infra: END,
+        },
+        BootstrapOutput(state: ThinkyGettingStartedGraphStateSchema) {
+          const lastAiMsgs = lastAiNotHumanMessages(state.Messages);
+
+          return {
+            ...state,
+            Messages: lastAiMsgs,
+          };
+        },
       } as EaCGraphCircuitDetails,
     };
   }
@@ -481,30 +649,24 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  return {
-                    Messages: [msg],
-                  } as AzureConnectGraphState;
-                })
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              } as AzureConnectGraphState;
+            },
           } as EaCChatPromptNeuron,
           'azure-sub': {
             Type: 'Circuit',
             CircuitLookup:
               'thinky-getting-started:cloud:azure-connect:subscriptions',
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((state: AzureConnectGraphState, cfg) => {
-                  return {
-                    ...state,
-                    Messages: state.Messages?.length
-                      ? [state.Messages.slice(-1)[0]]
-                      : [],
-                  } as AzureConnectGraphState;
-                })
-              ),
+            BootstrapOutput(state: AzureConnectGraphState) {
+              return {
+                ...state,
+                Messages: state.Messages?.length
+                  ? [state.Messages.slice(-1)[0]]
+                  : [],
+              } as AzureConnectGraphState;
+            },
           } as EaCCircuitNeuron,
           'azure-sub-commit:message': {
             Type: 'ChatPrompt',
@@ -515,14 +677,11 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  return {
-                    Messages: [msg],
-                  } as AzureConnectGraphState;
-                })
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              } as AzureConnectGraphState;
+            },
           } as EaCChatPromptNeuron,
           'azure-sub-commit:tool': {
             Neurons: {
@@ -532,40 +691,33 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               '': [
                 'fathym:eac:wait-for-status',
                 {
-                  Bootstrap: (r) =>
-                    RunnableLambda.from(({ Status }: { Status: EaCStatus }) => {
-                      return {
-                        Status,
-                        Operation: 'Connecting User to Azure',
-                      };
-                    }).pipe(r),
+                  BootstrapInput({ Status }: { Status: EaCStatus }) {
+                    return {
+                      Status,
+                      Operation: 'Connecting User to Azure',
+                    };
+                  },
                 } as Partial<EaCNeuron>,
               ],
             },
-            Bootstrap: (r) =>
-              RunnableLambda.from((state: AzureConnectGraphState) => {
-                return {
-                  BillingAccount: state.BillingAccount ?? undefined,
-                  SubscriptionID: state.SubscriptionID ?? undefined,
-                  SubscriptionName: state.SubscriptionName ?? undefined,
-                  Verified: state.Verified || false,
-                } as AzureConnectSchema;
-              })
-                .pipe(r)
-                .pipe(
-                  RunnableLambda.from(
-                    ({ Status }: { Status: EaCStatus }, cfg) => {
-                      return {
-                        Messages: [
-                          new FunctionMessage({
-                            content: JSON.stringify(Status),
-                            name: 'cloud-azure-connect',
-                          }),
-                        ],
-                      };
-                    }
-                  )
-                ),
+            BootstrapInput(state: AzureConnectGraphState) {
+              return {
+                BillingAccount: state.BillingAccount ?? undefined,
+                SubscriptionID: state.SubscriptionID ?? undefined,
+                SubscriptionName: state.SubscriptionName ?? undefined,
+                Verified: state.Verified || false,
+              } as AzureConnectSchema;
+            },
+            BootstrapOutput({ Status }: { Status: EaCStatus }) {
+              return {
+                Messages: [
+                  new FunctionMessage({
+                    content: JSON.stringify(Status),
+                    name: 'cloud-azure-connect',
+                  }),
+                ],
+              };
+            },
           } as Partial<EaCNeuron>,
           'azure-sub:complete': {
             Type: 'ChatPrompt',
@@ -576,15 +728,12 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  return {
-                    CloudConnected: true,
-                    Messages: [msg],
-                  } as AzureConnectGraphState;
-                })
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                CloudConnected: true,
+                Messages: [msg],
+              } as AzureConnectGraphState;
+            },
           } as EaCChatPromptNeuron,
         },
         Edges: {
@@ -622,19 +771,14 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
           'azure-sub-commit:tool': 'azure-sub:complete',
           'azure-sub:complete': END,
         },
-        Bootstrap: (r) =>
-          r.pipe(
-            RunnableLambda.from(
-              ({ CloudConnected, Messages }: AzureConnectGraphState, cfg) => {
-                const lastAiMsgs = lastAiNotHumanMessages(Messages);
+        BootstrapOutput({ CloudConnected, Messages }: AzureConnectGraphState) {
+          const lastAiMsgs = lastAiNotHumanMessages(Messages);
 
-                return {
-                  HasConfiguredCloud: CloudConnected,
-                  Messages: lastAiMsgs,
-                } as ThinkyGettingStartedGraphStateSchema;
-              }
-            )
-          ),
+          return {
+            HasConfiguredCloud: CloudConnected,
+            Messages: lastAiMsgs,
+          } as ThinkyGettingStartedGraphStateSchema;
+        },
       } as EaCGraphCircuitDetails,
     };
   }
@@ -674,63 +818,56 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 } as Partial<EaCLLMNeuron>,
               ],
             },
-            Bootstrap: (r) =>
-              RunnableLambda.from(
-                ({
-                  Subscriptions,
-                  BillingAccounts,
-                  State,
-                }: {
-                  Subscriptions: string;
-                  BillingAccounts: string;
-                  State: AzureConnectGraphState;
-                }) => {
-                  return {
-                    ...State,
-                    Subscriptions,
-                    BillingAccounts,
-                  };
-                }
-              )
-                .pipe(r)
-                .pipe(
-                  RunnableLambda.from((msg: BaseMessage, cfg) => {
-                    if (msg.additional_kwargs.tool_calls?.length) {
-                      const tool =
-                        msg.additional_kwargs.tool_calls![0].function;
+            BootstrapInput({
+              Subscriptions,
+              BillingAccounts,
+              State,
+            }: {
+              Subscriptions: string;
+              BillingAccounts: string;
+              State: AzureConnectGraphState;
+            }) {
+              return {
+                ...State,
+                Subscriptions,
+                BillingAccounts,
+              };
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              if (msg.additional_kwargs.tool_calls?.length) {
+                const tool = msg.additional_kwargs.tool_calls![0].function;
 
-                      const toolArgs = JSON.parse(
-                        tool.arguments
-                      ) as AzureConnectSchema;
+                const toolArgs = JSON.parse(
+                  tool.arguments
+                ) as AzureConnectSchema;
 
-                      return {
-                        Messages: undefined,
-                        BillingAccount: toolArgs.BillingAccount,
-                        SubscriptionID: toolArgs.SubscriptionID,
-                        SubscriptionName: toolArgs.SubscriptionName,
-                        Verified: toolArgs.Verified,
-                      } as AzureConnectGraphState;
-                    } else if (msg.additional_kwargs.function_call) {
-                      const tool = msg.additional_kwargs.function_call;
+                return {
+                  Messages: undefined,
+                  BillingAccount: toolArgs.BillingAccount,
+                  SubscriptionID: toolArgs.SubscriptionID,
+                  SubscriptionName: toolArgs.SubscriptionName,
+                  Verified: toolArgs.Verified,
+                } as AzureConnectGraphState;
+              } else if (msg.additional_kwargs.function_call) {
+                const tool = msg.additional_kwargs.function_call;
 
-                      const toolArgs = JSON.parse(
-                        tool.arguments
-                      ) as AzureConnectSchema;
+                const toolArgs = JSON.parse(
+                  tool.arguments
+                ) as AzureConnectSchema;
 
-                      return {
-                        Messages: undefined,
-                        BillingAccount: toolArgs.BillingAccount,
-                        SubscriptionID: toolArgs.SubscriptionID,
-                        SubscriptionName: toolArgs.SubscriptionName,
-                        Verified: toolArgs.Verified,
-                      } as AzureConnectGraphState;
-                    } else {
-                      return {
-                        Messages: [msg],
-                      } as AzureConnectGraphState;
-                    }
-                  })
-                ),
+                return {
+                  Messages: undefined,
+                  BillingAccount: toolArgs.BillingAccount,
+                  SubscriptionID: toolArgs.SubscriptionID,
+                  SubscriptionName: toolArgs.SubscriptionName,
+                  Verified: toolArgs.Verified,
+                } as AzureConnectGraphState;
+              } else {
+                return {
+                  Messages: [msg],
+                } as AzureConnectGraphState;
+              }
+            },
           } as EaCChatPromptNeuron,
         },
       } as EaCLinearCircuitDetails,
@@ -748,17 +885,14 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
           'azure-calz': {
             Type: 'Circuit',
             CircuitLookup: 'thinky-getting-started:cloud:calz:resource-group',
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((state: CloudCALZGraphState, cfg) => {
-                  return {
-                    ...state,
-                    Messages: state.Messages?.length
-                      ? [state.Messages.slice(-1)[0]]
-                      : [],
-                  } as CloudCALZGraphState;
-                })
-              ),
+            BootstrapOutput(state: CloudCALZGraphState) {
+              return {
+                ...state,
+                Messages: state.Messages?.length
+                  ? [state.Messages.slice(-1)[0]]
+                  : [],
+              } as CloudCALZGraphState;
+            },
           } as EaCCircuitNeuron,
           'azure-calz-commit:message': {
             Type: 'ChatPrompt',
@@ -769,14 +903,11 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  return {
-                    Messages: [msg],
-                  } as CloudCALZGraphState;
-                })
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              } as CloudCALZGraphState;
+            },
           } as EaCChatPromptNeuron,
           'azure-calz-commit:tool': {
             Neurons: {
@@ -786,39 +917,33 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
               '': [
                 'fathym:eac:wait-for-status',
                 {
-                  Bootstrap: (r) =>
-                    RunnableLambda.from(({ Status }: { Status: EaCStatus }) => {
-                      return {
-                        Status,
-                        Operation:
-                          'Creating Initial Cloud Application Landing Zone',
-                      };
-                    }).pipe(r),
+                  BootstrapInput({ Status }: { Status: EaCStatus }) {
+                    return {
+                      Delay: 10000,
+                      Status,
+                      Operation:
+                        'Creating Initial Cloud Application Landing Zone',
+                    } as FathymEaCStatusInputSchema;
+                  },
                 } as Partial<EaCNeuron>,
               ],
             },
-            Bootstrap: (r) =>
-              RunnableLambda.from((state: CloudCALZGraphState) => {
-                return {
-                  Confirmed: state.Confirmed || false,
-                  ResourceGroupLookup: state.ResourceGroupLookup ?? undefined,
-                } as CloudCALZSchema;
-              })
-                .pipe(r)
-                .pipe(
-                  RunnableLambda.from(
-                    ({ Status }: { Status: EaCStatus }, cfg) => {
-                      return {
-                        Messages: [
-                          new FunctionMessage({
-                            content: JSON.stringify(Status),
-                            name: 'fathym-eac-status',
-                          }),
-                        ],
-                      };
-                    }
-                  )
-                ),
+            BootstrapInput(state: CloudCALZGraphState) {
+              return {
+                Confirmed: state.Confirmed || false,
+                ResourceGroupLookup: state.ResourceGroupLookup ?? undefined,
+              } as CloudCALZSchema;
+            },
+            BootstrapOutput({ Status }: { Status: EaCStatus }) {
+              return {
+                Messages: [
+                  new FunctionMessage({
+                    content: JSON.stringify(Status),
+                    name: 'fathym-eac-status',
+                  }),
+                ],
+              };
+            },
           } as Partial<EaCNeuron>,
           'azure-calz:complete': {
             Type: 'ChatPrompt',
@@ -829,15 +954,12 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  return {
-                    CALZCreated: true,
-                    Messages: [msg],
-                  } as CloudCALZGraphState;
-                })
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                CALZCreated: true,
+                Messages: [msg],
+              } as CloudCALZGraphState;
+            },
           } as EaCChatPromptNeuron,
         },
         Edges: {
@@ -860,19 +982,14 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
           'azure-calz-commit:tool': 'azure-calz:complete',
           'azure-calz:complete': END,
         },
-        Bootstrap: (r) =>
-          r.pipe(
-            RunnableLambda.from(
-              ({ CALZCreated, Messages }: CloudCALZGraphState, cfg) => {
-                const lastAiMsgs = lastAiNotHumanMessages(Messages);
+        BootstrapOutput({ CALZCreated, Messages }: CloudCALZGraphState) {
+          const lastAiMsgs = lastAiNotHumanMessages(Messages);
 
-                return {
-                  HasConfiguredCalz: CALZCreated,
-                  Messages: lastAiMsgs,
-                } as ThinkyGettingStartedGraphStateSchema;
-              }
-            )
-          ),
+          return {
+            HasConfiguredCALZ: CALZCreated,
+            Messages: lastAiMsgs,
+          } as ThinkyGettingStartedGraphStateSchema;
+        },
       } as EaCGraphCircuitDetails,
     };
   }
@@ -898,40 +1015,236 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 } as Partial<EaCLLMNeuron>,
               ],
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage, cfg) => {
-                  if (msg.additional_kwargs.tool_calls?.length) {
-                    const tool = msg.additional_kwargs.tool_calls![0].function;
+            BootstrapInput(state: CloudCALZGraphState, _, cfg) {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
 
-                    const toolArgs = JSON.parse(
-                      tool.arguments
-                    ) as CloudCALZSchema;
+              return {
+                Messages:
+                  !gettingStarted.CurrentCloud && state.Messages?.length
+                    ? [state.Messages.slice(-1)[0]]
+                    : state.Messages,
+              } as CloudCALZGraphState;
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              if (msg.additional_kwargs.tool_calls?.length) {
+                const tool = msg.additional_kwargs.tool_calls![0].function;
 
+                const toolArgs = JSON.parse(tool.arguments) as CloudCALZSchema;
+
+                return {
+                  Messages: undefined,
+                  ResourceGroupLookup: toolArgs.ResourceGroupLookup,
+                  Confirmed: toolArgs.Confirmed,
+                } as CloudCALZGraphState;
+              } else if (msg.additional_kwargs.function_call) {
+                const tool = msg.additional_kwargs.function_call;
+
+                const toolArgs = JSON.parse(tool.arguments) as CloudCALZSchema;
+
+                return {
+                  Messages: undefined,
+                  ResourceGroupLookup: toolArgs.ResourceGroupLookup,
+                  Confirmed: toolArgs.Confirmed,
+                } as CloudCALZGraphState;
+              } else {
+                return {
+                  Messages: [msg],
+                } as CloudCALZGraphState;
+              }
+            },
+          } as EaCChatPromptNeuron,
+        },
+      } as EaCLinearCircuitDetails,
+    };
+  }
+
+  protected buildCloudInfrastructureCircuit() {
+    return {
+      Details: {
+        Type: 'Graph',
+        Priority: 100,
+        InputSchema: CloudInfrastructureSchema,
+        State: CloudInfrastructureGraphState,
+        Neurons: {
+          'azure-infra': {
+            Type: 'Circuit',
+            CircuitLookup:
+              'thinky-getting-started:cloud:infrastructure:details',
+            BootstrapOutput(state: CloudInfrastructureGraphState) {
+              return {
+                ...state,
+                Messages: state.Messages?.length
+                  ? [state.Messages.slice(-1)[0]]
+                  : [],
+              } as CloudInfrastructureGraphState;
+            },
+          } as EaCCircuitNeuron,
+          'azure-infra-commit:message': {
+            Type: 'ChatPrompt',
+            SystemMessage: `You are Thinky, the user's Fathym assistant.  Let the user know that you are creating their AI Infrastructure Launch Pad, and you'll be back with them shortly once complete.`,
+            NewMessages: [
+              new MessagesPlaceholder('Messages'),
+            ] as BaseMessagePromptTemplateLike[],
+            Neurons: {
+              '': 'thinky-llm',
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              } as CloudInfrastructureGraphState;
+            },
+          } as EaCChatPromptNeuron,
+          'azure-infra-commit:tool': {
+            Neurons: {
+              '': 'thinky-getting-started:tools:cloud:infrastructure',
+            },
+            Synapses: {
+              '': [
+                'fathym:eac:wait-for-status',
+                {
+                  BootstrapInput({ Status }: { Status: EaCStatus }) {
                     return {
-                      Messages: undefined,
-                      ResourceGroupLookup: toolArgs.ResourceGroupLookup,
-                      Confirmed: toolArgs.Confirmed,
-                    } as CloudCALZGraphState;
-                  } else if (msg.additional_kwargs.function_call) {
-                    const tool = msg.additional_kwargs.function_call;
+                      Delay: 10000,
+                      Status,
+                      Operation: 'Creating AI Infrastructure Launch Pad',
+                    };
+                  },
+                } as Partial<EaCNeuron>,
+              ],
+            },
+            BootstrapInput(state: CloudInfrastructureGraphState) {
+              return {
+                Confirmed: state.Confirmed || false,
+                ResourceLookup: state.ResourceLookup ?? undefined,
+              } as CloudInfrastructureSchema;
+            },
+            BootstrapOutput({ Status }: { Status: EaCStatus }) {
+              return {
+                Messages: [
+                  new FunctionMessage({
+                    content: JSON.stringify(Status),
+                    name: 'fathym-eac-status',
+                  }),
+                ],
+              };
+            },
+          } as Partial<EaCNeuron>,
+          'azure-infra:complete': {
+            Type: 'ChatPrompt',
+            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you have completed setting up their AI Infrastructure Launch Pad and that you are analyzing next steps, and will be back with them shortly.`,
+            NewMessages: [
+              new MessagesPlaceholder('Messages'),
+            ] as BaseMessagePromptTemplateLike[],
+            Neurons: {
+              '': 'thinky-llm',
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                InfrastructureCreated: true,
+                Messages: [msg],
+              } as CloudInfrastructureGraphState;
+            },
+          } as EaCChatPromptNeuron,
+        },
+        Edges: {
+          [START]: 'azure-infra',
+          'azure-infra': {
+            Node: {
+              message: 'azure-infra-commit:message',
+              tool: 'azure-infra-commit:tool',
+              [END]: END,
+            },
+            Condition: (state: CloudInfrastructureGraphState) => {
+              if (state.Confirmed && state.ResourceLookup) {
+                return ['message', 'tool'];
+              }
 
-                    const toolArgs = JSON.parse(
-                      tool.arguments
-                    ) as CloudCALZSchema;
+              return END;
+            },
+          },
+          'azure-infra-commit:message': 'azure-infra:complete',
+          'azure-infra-commit:tool': 'azure-infra:complete',
+          'azure-infra:complete': END,
+        },
+        BootstrapOutput({
+          InfrastructureCreated,
+          Messages,
+        }: CloudInfrastructureGraphState) {
+          const lastAiMsgs = lastAiNotHumanMessages(Messages);
 
-                    return {
-                      Messages: undefined,
-                      ResourceGroupLookup: toolArgs.ResourceGroupLookup,
-                      Confirmed: toolArgs.Confirmed,
-                    } as CloudCALZGraphState;
-                  } else {
-                    return {
-                      Messages: [msg],
-                    } as CloudCALZGraphState;
-                  }
-                })
-              ),
+          return {
+            HasConfiguredInfrastructure: InfrastructureCreated,
+            Messages: lastAiMsgs,
+          } as ThinkyGettingStartedGraphStateSchema;
+        },
+      } as EaCGraphCircuitDetails,
+    };
+  }
+
+  protected buildCloudInfrastructureDetailsCircuit() {
+    return {
+      Details: {
+        Type: 'Linear',
+        Priority: 100,
+        Neurons: {
+          '': {
+            Type: 'ChatPrompt',
+            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you will help them collect the information you need to setup their AI Infrastructure Launch Pad. Make sure you aren't selecting the previously chosen 'ResourceGroupLookup', and instead are asking for the users AI Infrastructure resource name. Once you have collected enough information to call the tool, make sure to confirm the information with the user. Once the user has confirmed, you can call the tool.`,
+            NewMessages: [
+              new MessagesPlaceholder('Messages'),
+            ] as BaseMessagePromptTemplateLike[],
+            Neurons: {
+              '': [
+                'thinky-llm',
+                {
+                  ToolsAsFunctions: true,
+                  ToolLookups: ['thinky|thinky-getting-started:infrastructure'],
+                } as Partial<EaCLLMNeuron>,
+              ],
+            },
+            BootstrapInput(state: CloudInfrastructureGraphState, _, cfg) {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+
+              return {
+                Messages:
+                  !gettingStarted.CurrentCALZ && state.Messages?.length
+                    ? [state.Messages.slice(-1)[0]]
+                    : state.Messages,
+              } as CloudInfrastructureGraphState;
+            },
+            BootstrapOutput(msg: BaseMessage) {
+              if (msg.additional_kwargs.tool_calls?.length) {
+                const tool = msg.additional_kwargs.tool_calls![0].function;
+
+                const toolArgs = JSON.parse(
+                  tool.arguments
+                ) as CloudInfrastructureSchema;
+
+                return {
+                  Messages: undefined,
+                  ResourceLookup: toolArgs.ResourceLookup,
+                  Confirmed: toolArgs.Confirmed,
+                } as CloudInfrastructureGraphState;
+              } else if (msg.additional_kwargs.function_call) {
+                const tool = msg.additional_kwargs.function_call;
+
+                const toolArgs = JSON.parse(
+                  tool.arguments
+                ) as CloudInfrastructureSchema;
+
+                return {
+                  Messages: undefined,
+                  ResourceLookup: toolArgs.ResourceLookup,
+                  Confirmed: toolArgs.Confirmed,
+                } as CloudInfrastructureGraphState;
+              } else {
+                return {
+                  Messages: [msg],
+                } as CloudInfrastructureGraphState;
+              }
+            },
           } as EaCChatPromptNeuron,
         },
       } as EaCLinearCircuitDetails,
@@ -950,25 +1263,23 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
           cloud: {
             Type: 'Circuit',
             CircuitLookup: 'thinky-getting-started:cloud',
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from(
-                  (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
-                    const gettingStarted: ThinkyGettingStartedState =
-                      cfg?.configurable?.RuntimeContext.State.GettingStarted;
+            BootstrapOutput(
+              state: ThinkyGettingStartedGraphStateSchema,
+              _,
+              cfg
+            ) {
+              const gettingStarted: ThinkyGettingStartedState =
+                cfg?.configurable?.RuntimeContext.State.GettingStarted;
 
-                    return {
-                      ...state,
-                      HasAzureAccessToken: !!gettingStarted.AzureAccessToken,
-                      HasConfiguredCloud:
-                        state.HasConfiguredCloud ||
-                        !!gettingStarted.CurrentCloud,
-                      HasConfiguredCalz:
-                        state.HasConfiguredCalz || !!gettingStarted.CurrentCALZ,
-                    } as ThinkyGettingStartedGraphStateSchema;
-                  }
-                )
-              ),
+              return {
+                ...state,
+                HasAzureAccessToken: !!gettingStarted.AzureAccessToken,
+                HasConfiguredCloud:
+                  state.HasConfiguredCloud || !!gettingStarted.CurrentCloud,
+                HasConfiguredCALZ:
+                  state.HasConfiguredCALZ || !!gettingStarted.CurrentCALZ,
+              } as ThinkyGettingStartedGraphStateSchema;
+            },
           } as EaCCircuitNeuron,
         },
         Edges: {
@@ -982,6 +1293,8 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 Messages,
                 HasAzureAccessToken,
                 HasConfiguredCloud,
+                HasConfiguredCALZ,
+                HasConfiguredInfrastructure,
               }: ThinkyGettingStartedGraphStateSchema,
               cfg
             ) => {
@@ -999,27 +1312,27 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 cfg?.configurable?.peek ||
                 ((!!gettingStarted.AzureAccessToken === HasAzureAccessToken ||
                   (HasAzureAccessToken &&
-                    !!gettingStarted.CurrentCloud === HasConfiguredCloud)) &&
+                    !!gettingStarted.CurrentCloud === HasConfiguredCloud) ||
+                  (HasAzureAccessToken &&
+                    HasConfiguredCloud &&
+                    !!gettingStarted.CurrentCALZ === HasConfiguredCALZ)) &&
                   isAiMsg)
               ) {
                 return END;
               }
 
-              const node = !gettingStarted?.CurrentCALZ ? 'cloud' : END;
+              const node = !HasConfiguredInfrastructure ? 'cloud' : END;
 
               return node;
             },
           },
           cloud: END,
         },
-        Bootstrap: (r) =>
-          RunnableLambda.from(
-            ({ Input }: ThinkyGettingStartedCircuitInputSchema) => {
-              return {
-                Messages: Input ? [new HumanMessage(Input)] : [],
-              };
-            }
-          ).pipe(r),
+        BootstrapInput({ Input }: ThinkyGettingStartedCircuitInputSchema) {
+          return {
+            Messages: Input ? [new HumanMessage(Input)] : [],
+          };
+        },
       } as EaCGraphCircuitDetails,
     };
   }

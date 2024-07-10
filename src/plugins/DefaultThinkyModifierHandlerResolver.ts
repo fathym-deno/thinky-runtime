@@ -23,7 +23,7 @@ export const ThinkyGettingStartedState = z.object({
     .optional(),
   CurrentCALZ: z
     .object({
-      ResourceGroupName: z.string(),
+      ResourceGroupLookup: z.string(),
     })
     .optional(),
 });
@@ -95,7 +95,7 @@ export class DefaultThinkyModifierHandlerResolver
 
     if (curCloud && Object.keys(curCloud.ResourceGroups || {}).length) {
       state.CurrentCALZ = {
-        ResourceGroupName: Object.keys(curCloud.ResourceGroups || {})[0],
+        ResourceGroupLookup: Object.keys(curCloud.ResourceGroups || {})[0],
       };
     }
 
