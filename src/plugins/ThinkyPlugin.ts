@@ -1,16 +1,22 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
 import { IoCContainer } from '@fathym/ioc';
-import { EaCDynamicToolDetails, EaCLLMNeuron, EaCPassthroughNeuron, EaCToolNeuron } from '@fathym/synaptic';
+import {
+  EaCAzureOpenAILLMDetails,
+  EaCDenoKVChatHistoryDetails,
+  EaCDynamicToolDetails,
+  EaCLLMNeuron,
+  EaCMemorySaverPersistenceDetails,
+  EaCPassthroughNeuron,
+  EaCTavilySearchResultsToolDetails,
+  EaCToolNeuron,
+} from '@fathym/synaptic';
 import MinervaPlugin from './thinky/MinervaPlugin.ts';
 import ThinkyEnterprisePlugin from './thinky/ThinkyEnterprisePlugin.ts';
 import ThinkyPublicPlugin from './thinky/ThinkyPublicPlugin.ts';
 import ThinkyDashboardPlugin from './thinky/ThinkyDashboardPlugin.ts';
 import z from 'npm:zod';
 import { loadEaCAzureSvc } from '@fathym/eac/api';
+import { EaCESMDistributedFileSystem } from '@fathym/eac';
 
 export const FathymAzureBillingAccountsInputSchema = z.object({});
 
@@ -43,9 +49,70 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
         new MinervaPlugin(),
       ],
       EaC: {
+        // DFS: {
+        //   'fathym-synaptic-resolvers': {
+        //     Type: 'ESM',
+        //     Root: '@fathym/synaptic/',
+        //     EntryPoints: ['resolvers.ts'],
+        //     IncludeDependencies: false,
+        //   } as EaCESMDistributedFileSystem,
+        // },
         AIs: {
           thinky: {
+            ChatHistories: {
+              tester: {
+                Details: {
+                  Type: 'DenoKV',
+                  Name: 'Thinky',
+                  Description: 'The Thinky document indexer to use.',
+                  DenoKVDatabaseLookup: 'thinky',
+                  RootKey: ['Thinky', 'EaC', 'ChatHistory', 'Tester'],
+                } as EaCDenoKVChatHistoryDetails,
+              },
+            },
+            LLMs: {
+              thinky: {
+                Details: {
+                  Type: 'AzureOpenAI',
+                  Name: 'Azure OpenAI LLM',
+                  Description: 'The LLM for interacting with Azure OpenAI.',
+                  APIKey: Deno.env.get('AZURE_OPENAI_KEY')!,
+                  Endpoint: Deno.env.get('AZURE_OPENAI_ENDPOINT')!,
+                  DeploymentName: 'gpt-4o',
+                  ModelName: 'gpt-4o',
+                  Streaming: true,
+                  Verbose: false,
+                } as EaCAzureOpenAILLMDetails,
+              },
+              'thinky-tooled': {
+                Details: {
+                  Type: 'AzureOpenAI',
+                  Name: 'Azure OpenAI LLM',
+                  Description: 'The LLM for interacting with Azure OpenAI.',
+                  APIKey: Deno.env.get('AZURE_OPENAI_KEY')!,
+                  Endpoint: Deno.env.get('AZURE_OPENAI_ENDPOINT')!,
+                  DeploymentName: 'gpt-4o',
+                  ModelName: 'gpt-4o',
+                  Streaming: true,
+                  Verbose: false,
+                  ToolLookups: ['thinky|tavily'],
+                } as EaCAzureOpenAILLMDetails,
+              },
+            },
+            Persistence: {
+              memory: {
+                Details: {
+                  Type: 'MemorySaver',
+                } as EaCMemorySaverPersistenceDetails,
+              },
+            },
             Tools: {
+              tavily: {
+                Details: {
+                  Type: 'TavilySearchResults',
+                  APIKey: Deno.env.get('TAVILY_API_KEY')!,
+                } as EaCTavilySearchResultsToolDetails,
+              },
               'fathym:azure:billing-accounts': {
                 Details: {
                   Type: 'Dynamic',
@@ -56,7 +123,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                   Action: async (
                     _input: FathymAzureBillingAccountsInputSchema,
                     _,
-                    cfg
+                    cfg,
                   ) => {
                     const state = cfg!.configurable!.RuntimeContext.State;
 
@@ -69,7 +136,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                     try {
                       const billingAccounts = await eacAzureSvc.BillingAccounts(
                         entLookup,
-                        state.GettingStarted.AzureAccessToken
+                        state.GettingStarted.AzureAccessToken,
                       );
 
                       const billingAcctDetails = billingAccounts.reduce(
@@ -86,17 +153,16 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                             }
 
                             case 'MicrosoftCustomerAgreement': {
-                              const billingProfiles =
-                                billingAccount.billingProfiles?.value || [];
+                              const billingProfiles = billingAccount.billingProfiles?.value || [];
 
                               billingProfiles.forEach((billingProfile) => {
-                                const invoiceSections =
-                                  billingProfile.invoiceSections?.value || [];
+                                const invoiceSections = billingProfile.invoiceSections?.value || [];
 
                                 invoiceSections.forEach((invoiceSection) => {
                                   acc[
                                     invoiceSection.id!
-                                  ] = `MCA - ${displayName} - Profile - ${billingProfile.displayName} - Invoice - ${invoiceSection.displayName}`;
+                                  ] =
+                                    `MCA - ${displayName} - Profile - ${billingProfile.displayName} - Invoice - ${invoiceSection.displayName}`;
                                 });
                               });
                               break;
@@ -110,8 +176,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                             }
 
                             case 'EnterpriseAgreement': {
-                              const enrollmentAccounts =
-                                billingAccount.enrollmentAccounts || [];
+                              const enrollmentAccounts = billingAccount.enrollmentAccounts || [];
 
                               enrollmentAccounts.forEach((account) => {
                                 acc[
@@ -124,7 +189,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
 
                           return acc;
                         },
-                        {} as Record<string, string>
+                        {} as Record<string, string>,
                       );
 
                       return JSON.stringify(billingAcctDetails);
@@ -138,13 +203,12 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-azure-subscriptions',
-                  Description:
-                    "Use this tool to retrieve the user's current Azure subscriptions.",
+                  Description: "Use this tool to retrieve the user's current Azure subscriptions.",
                   Schema: FathymAzureSubscriptionsInputSchema,
                   Action: async (
                     _input: FathymAzureSubscriptionsInputSchema,
                     _,
-                    cfg
+                    cfg,
                   ) => {
                     const state = cfg!.configurable!.RuntimeContext.State;
 
@@ -157,7 +221,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                     try {
                       const subs = await eacAzureSvc.Subscriptions(
                         entLookup,
-                        state.GettingStarted.AzureAccessToken
+                        state.GettingStarted.AzureAccessToken,
                       );
 
                       const subDetails = subs.reduce((acc, sub) => {
@@ -177,13 +241,12 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-azure-tenants',
-                  Description:
-                    "Use this tool to retrieve the user's current Azure tenants.",
+                  Description: "Use this tool to retrieve the user's current Azure tenants.",
                   Schema: FathymAzureTenantsInputSchema,
                   Action: async (
                     _input: FathymAzureTenantsInputSchema,
                     _,
-                    cfg
+                    cfg,
                   ) => {
                     const state = cfg!.configurable!.RuntimeContext.State;
 
@@ -196,7 +259,7 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
                     try {
                       const tenants = await eacAzureSvc.Tenants(
                         entLookup,
-                        state.GettingStarted.AzureAccessToken
+                        state.GettingStarted.AzureAccessToken,
                       );
 
                       const tenantDetails = tenants.reduce((acc, tenant) => {
@@ -216,8 +279,9 @@ export default class ThinkyPlugin implements EaCRuntimePlugin {
           },
         },
         Circuits: {
+          // $handlers: ['fathym-synaptic-resolvers'],
           $neurons: {
-            '$pass': {
+            $pass: {
               Type: 'Passthrough',
             } as EaCPassthroughNeuron,
             'thinky-llm': {

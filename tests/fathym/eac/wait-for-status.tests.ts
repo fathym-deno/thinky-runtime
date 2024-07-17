@@ -18,7 +18,7 @@ import {
   RunnableLambda,
   START,
   z,
-} from '../../test.deps.ts';
+} from '../../tests.deps.ts';
 import { buildTestIoC } from '../../test-eac-setup.ts';
 import { EaCStatus, EaCStatusProcessingTypes } from '@fathym/eac/api';
 import { delay } from 'https://deno.land/std@0.220.1/async/delay.ts';
@@ -34,8 +34,7 @@ Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {
             Details: {
               Type: 'Dynamic',
               Name: 'fathym-eac-status',
-              Description:
-                'Use this tool to get the status of an EaC commit operation.',
+              Description: 'Use this tool to get the status of an EaC commit operation.',
               Schema: z.object({
                 Status: z.custom<EaCStatus>(),
               }),
@@ -62,7 +61,7 @@ Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {
             r.pipe(
               RunnableLambda.from((toolRes: string) => {
                 return { Status: JSON.parse(toolRes) };
-              })
+              }),
             ),
         } as EaCToolNeuron,
       },
@@ -103,7 +102,8 @@ Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {
             } as Partial<EaCNeuron>,
             'status:message': {
               Type: 'ChatPrompt',
-              SystemMessage: `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly.
+              SystemMessage:
+                `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly.
               
 Operation Context:
 {Operation}
@@ -127,7 +127,7 @@ EaC Status:
                       return {
                         Messages: [msg],
                       };
-                    })
+                    }),
                   ),
             } as EaCChatPromptNeuron,
           },
@@ -173,7 +173,7 @@ EaC Status:
                   Operation,
                   Status,
                 };
-              }
+              },
             )
               .pipe(r)
               .pipe(
@@ -189,8 +189,8 @@ EaC Status:
                       Messages,
                       Status,
                     };
-                  }
-                )
+                  },
+                ),
               ),
         } as EaCGraphCircuitDetails,
       },
@@ -204,7 +204,7 @@ EaC Status:
   await t.step('Invoke', async () => {
     const circuit = await ioc.Resolve<Runnable>(
       ioc.Symbol('Circuit'),
-      'test:fathym:eac:wait-for-status'
+      'test:fathym:eac:wait-for-status',
     );
 
     const chunk = await circuit.invoke({

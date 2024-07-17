@@ -31,22 +31,20 @@ export default class MinervaPlugin implements EaCRuntimePlugin {
                   ChatHistoryLookup: `thinky|tester`,
                   InputKey: 'input',
                   HistoryKey: 'messages',
-                  Neurons: {
-                    '': {
-                      Type: 'ChatPrompt',
-                      InputKey: 'question',
-                      SystemMessage:
-                        'You are a helpful, cauckney british assistant. Get pissed off if I ask you for the same thing, and reflect that in the new version of the answer.',
-                      Messages: [
-                        // ...baseMessages,
-                        new MessagesPlaceholder('messages'),
-                      ] as BaseMessagePromptTemplateLike[],
-                      NewMessages: [['human', '{input}']],
-                      Neurons: {
-                        '': 'thinky-llm',
-                      },
-                    } as EaCChatPromptNeuron,
-                  },
+                  ChatNeuron: {
+                    Type: 'ChatPrompt',
+                    InputKey: 'question',
+                    SystemMessage:
+                      'You are a helpful, cauckney british assistant. Get pissed off if I ask you for the same thing, and reflect that in the new version of the answer.',
+                    Messages: [
+                      // ...baseMessages,
+                      new MessagesPlaceholder('messages'),
+                    ] as BaseMessagePromptTemplateLike[],
+                    NewMessages: [['human', '{input}']],
+                    Neurons: {
+                      '': 'thinky-llm',
+                    },
+                  } as EaCChatPromptNeuron,
                 } as EaCChatHistoryNeuron as any,
               },
             },

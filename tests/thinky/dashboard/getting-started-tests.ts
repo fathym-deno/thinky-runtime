@@ -30,7 +30,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
         await t.step('Azure Login', async () => {
           const circuit = await ioc.Resolve<Runnable>(
             ioc.Symbol('Circuit'),
-            'thinky-getting-started:cloud:azure-connect'
+            'thinky-getting-started:cloud:azure-connect',
           );
 
           const chunk = await circuit.invoke(
@@ -44,7 +44,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
                   },
                 },
               },
-            }
+            },
           );
 
           assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -56,7 +56,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
       await t.step('Azure Login', async () => {
         const circuit = await ioc.Resolve<Runnable>(
           ioc.Symbol('Circuit'),
-          'thinky-getting-started:cloud'
+          'thinky-getting-started:cloud',
         );
 
         const chunk = await circuit.invoke(
@@ -70,7 +70,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
                 },
               },
             },
-          }
+          },
         );
 
         assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -82,7 +82,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
     await t.step('Azure Login', async () => {
       const circuit = await ioc.Resolve<Runnable>(
         ioc.Symbol('Circuit'),
-        'thinky-getting-started'
+        'thinky-getting-started',
       );
 
       const chunk = await circuit.invoke(
@@ -96,7 +96,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
               },
             },
           },
-        }
+        },
       );
 
       assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));
@@ -107,7 +107,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
     await t.step('Azure Sub', async () => {
       const circuit = await ioc.Resolve<Runnable>(
         ioc.Symbol('Circuit'),
-        'thinky-getting-started'
+        'thinky-getting-started',
       );
 
       const chunk = await circuit.invoke(
@@ -123,7 +123,7 @@ Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
               },
             },
           },
-        }
+        },
       );
 
       assert(chunk.Messages.slice(-1)[0]?.content, JSON.stringify(chunk));

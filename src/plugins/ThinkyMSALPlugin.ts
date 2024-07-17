@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
 import { MSALPlugin } from '@fathym/msal';
 import { loadOAuth2ClientConfig } from '@fathym/eac/runtime';
 import { createOAuthHelpers } from '@fathym/common/oauth';
@@ -18,14 +14,14 @@ export default class ThinkyMSALPlugin implements EaCRuntimePlugin {
         new MSALPlugin({
           async Resolve(ioc, _processor, eac) {
             const primaryProviderLookup = Object.keys(eac.Providers || {}).find(
-              (pl) => eac.Providers![pl].Details!.IsPrimary
+              (pl) => eac.Providers![pl].Details!.IsPrimary,
             );
 
             const provider = eac.Providers![primaryProviderLookup!]!;
 
             const kv = await ioc.Resolve<Deno.Kv>(
               Deno.Kv,
-              provider.DatabaseLookup
+              provider.DatabaseLookup,
             );
 
             const keyRoot = ['MSAL', 'Session'];

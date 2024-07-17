@@ -10,7 +10,7 @@ import {
   FathymEaCServicesPlugin,
   FathymSynapticPlugin,
   IoCContainer,
-} from './test.deps.ts';
+} from './tests.deps.ts';
 import { merge } from '@fathym/common';
 
 export const AI_LOOKUP = 'thinky';

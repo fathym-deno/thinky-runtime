@@ -13,7 +13,7 @@ import {
   EaCRecursiveCharacterTextSplitterDetails,
   EaCSERPToolDetails,
   EaCTavilySearchResultsToolDetails,
-} from './test.deps.ts';
+} from './tests.deps.ts';
 
 export const eacAIsRoot = {
   Details: {

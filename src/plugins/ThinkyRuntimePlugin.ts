@@ -2,6 +2,7 @@ import {
   EaCAzureADB2CProviderDetails,
   EaCAzureADProviderDetails,
   EaCDenoKVDatabaseDetails,
+  EaCESMDistributedFileSystem,
   EaCJWTValidationModifierDetails,
   EaCKeepAliveModifierDetails,
 } from '@fathym/eac';
@@ -10,6 +11,7 @@ import {
   EaCRuntimePlugin,
   EaCRuntimePluginConfig,
   FathymAzureContainerCheckPlugin,
+  FathymDFSFileHandlerPlugin,
   FathymEaCServicesPlugin,
 } from '@fathym/eac/runtime';
 import { IoCContainer } from '@fathym/ioc';
@@ -38,6 +40,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
       Plugins: [
         new FathymAzureContainerCheckPlugin(),
         new FathymEaCServicesPlugin(),
+        new FathymDFSFileHandlerPlugin(),
         new ThinkyPlugin(),
         new FathymSynapticPlugin(),
         new ThinkyMSALPlugin(),
@@ -160,8 +163,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
             Details: {
               Type: 'KeepAlive',
               Name: 'Deno KV Cache',
-              Description:
-                'Lightweight cache to use that stores data in a DenoKV database.',
+              Description: 'Lightweight cache to use that stores data in a DenoKV database.',
               KeepAlivePath: '/_eac/alive',
             } as EaCKeepAliveModifierDetails,
           },
@@ -205,8 +207,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
             DatabaseLookup: 'oauth',
             Details: {
               Name: 'Azure ADB2C OAuth Provider',
-              Description:
-                'The provider used to connect with our azure adb2c instance',
+              Description: 'The provider used to connect with our azure adb2c instance',
               ClientID: Deno.env.get('AZURE_ADB2C_CLIENT_ID')!,
               ClientSecret: Deno.env.get('AZURE_ADB2C_CLIENT_SECRET')!,
               Scopes: ['openid', Deno.env.get('AZURE_ADB2C_CLIENT_ID')!],
@@ -226,65 +227,6 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               Scopes: ['openid'],
               TenantID: Deno.env.get('AZURE_AD_TENANT_ID')!, //common
             } as EaCAzureADProviderDetails,
-          },
-        },
-        AIs: {
-          thinky: {
-            ChatHistories: {
-              tester: {
-                Details: {
-                  Type: 'DenoKV',
-                  Name: 'Thinky',
-                  Description: 'The Thinky document indexer to use.',
-                  DenoKVDatabaseLookup: 'thinky',
-                  RootKey: ['Thinky', 'EaC', 'ChatHistory', 'Tester'],
-                } as EaCDenoKVChatHistoryDetails,
-              },
-            },
-            LLMs: {
-              thinky: {
-                Details: {
-                  Type: 'AzureOpenAI',
-                  Name: 'Azure OpenAI LLM',
-                  Description: 'The LLM for interacting with Azure OpenAI.',
-                  APIKey: Deno.env.get('AZURE_OPENAI_KEY')!,
-                  Endpoint: Deno.env.get('AZURE_OPENAI_ENDPOINT')!,
-                  DeploymentName: 'gpt-4o',
-                  ModelName: 'gpt-4o',
-                  Streaming: true,
-                  Verbose: false,
-                } as EaCAzureOpenAILLMDetails,
-              },
-              'thinky-tooled': {
-                Details: {
-                  Type: 'AzureOpenAI',
-                  Name: 'Azure OpenAI LLM',
-                  Description: 'The LLM for interacting with Azure OpenAI.',
-                  APIKey: Deno.env.get('AZURE_OPENAI_KEY')!,
-                  Endpoint: Deno.env.get('AZURE_OPENAI_ENDPOINT')!,
-                  DeploymentName: 'gpt-4o',
-                  ModelName: 'gpt-4o',
-                  Streaming: true,
-                  Verbose: false,
-                  ToolLookups: ['thinky|tavily'],
-                } as EaCAzureOpenAILLMDetails,
-              },
-            },
-            Persistence: {
-              memory: {
-                Details: {
-                  Type: 'MemorySaver',
-                } as EaCMemorySaverPersistenceDetails,
-              },
-            },
-            Tools: {
-              tavily: {
-                Details: {
-                  Type: 'TavilySearchResults',
-                  APIKey: Deno.env.get('TAVILY_API_KEY')!,
-                } as EaCTavilySearchResultsToolDetails,
-              },
-            },
           },
         },
       },

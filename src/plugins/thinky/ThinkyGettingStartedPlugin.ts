@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -10,8 +6,8 @@ import {
   EaCDenoKVSaverPersistenceDetails,
   EaCDynamicToolDetails,
   EaCGraphCircuitDetails,
-  EaCLLMNeuron,
   EaCLinearCircuitDetails,
+  EaCLLMNeuron,
   EaCNeuron,
   EaCToolNeuron,
   InferSynapticState,
@@ -31,20 +27,9 @@ import {
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { ThinkyGettingStartedState } from '../DefaultThinkyModifierHandlerResolver.ts';
-import {
-  EaCStatus,
-  FathymEaC,
-  loadEaCSvc,
-  waitForStatus,
-} from '@fathym/eac/api';
-import {
-  EaCCloudAzureDetails,
-  EaCCloudResourceFormatDetails,
-} from '@fathym/eac';
-import {
-  FathymEaCStatusInputSchema,
-  FathymEaCStatusPlugin,
-} from './FathymEaCStatusPlugin.ts';
+import { EaCStatus, FathymEaC, loadEaCSvc, waitForStatus } from '@fathym/eac/api';
+import { EaCCloudAzureDetails, EaCCloudResourceFormatDetails } from '@fathym/eac';
+import { FathymEaCStatusInputSchema, FathymEaCStatusPlugin } from './FathymEaCStatusPlugin.ts';
 
 export const ThinkyGettingStartedCircuitInputSchema = z.object({
   Input: z.string().optional(),
@@ -81,8 +66,7 @@ export type ThinkyGettingStartedGraphStateSchema = InferSynapticState<
   typeof ThinkyGettingStartedGraphStateSchema
 >;
 
-export const ThinkyGettingStartedStateSchema =
-  z.custom<ThinkyGettingStartedGraphStateSchema>();
+export const ThinkyGettingStartedStateSchema = z.custom<ThinkyGettingStartedGraphStateSchema>();
 
 export const CloudCALZGraphState = {
   CALZCreated: {
@@ -112,13 +96,13 @@ export const CloudCALZSchema = z.object({
     .boolean()
     .optional()
     .describe(
-      'This value should be set to true, only once a user has explicitly confirmed their selections for `ResourceGroupLookup`, and that the `ResourceGroupLookup` is in alphanumeric, lowered snake-case (with hyphens (-)) format.'
+      'This value should be set to true, only once a user has explicitly confirmed their selections for `ResourceGroupLookup`, and that the `ResourceGroupLookup` is in alphanumeric, lowered snake-case (with hyphens (-)) format.',
     ),
   ResourceGroupLookup: z
     .string()
     .optional()
     .describe(
-      'This is the unique lookup/name that a user can choose for their cloud resource group, and must be in alphanumeric, lowered snake-case (with hyphens (-)) to work.'
+      'This is the unique lookup/name that a user can choose for their cloud resource group, and must be in alphanumeric, lowered snake-case (with hyphens (-)) to work.',
     ),
 } as TypeToZod<Omit<CloudCALZGraphState, 'CALZCreated' | 'Messages'>>);
 
@@ -152,13 +136,13 @@ export const CloudInfrastructureSchema = z.object({
     .boolean()
     .optional()
     .describe(
-      'This value should be set to true, only once a user has explicitly confirmed their selections for `ResourceLookup`, and that the `ResourceLookup` is in alphanumeric, lowered snake-case (with hyphens (-)) format.'
+      'This value should be set to true, only once a user has explicitly confirmed their selections for `ResourceLookup`, and that the `ResourceLookup` is in alphanumeric, lowered snake-case (with hyphens (-)) format.',
     ),
   ResourceLookup: z
     .string()
     .optional()
     .describe(
-      'This is a unique lookup/name that a user can choose for their AI resource, and must be in alphanumeric, lowered snake-case (with hyphens (-)) to work.'
+      'This is a unique lookup/name that a user can choose for their AI resource, and must be in alphanumeric, lowered snake-case (with hyphens (-)) to work.',
     ),
 } as TypeToZod<Omit<CloudInfrastructureGraphState, 'InfrastructureCreated' | 'Messages'>>);
 
@@ -202,27 +186,29 @@ export const AzureConnectSchema = z.object({
     .string()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   SubscriptionName: z
     .string()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   SubscriptionID: z
     .string()
     .optional()
     .describe(
-      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.'
+      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.',
     ),
   Verified: z
     .boolean()
     .optional()
     .describe(
-      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.'
+      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.',
     ),
-} as TypeToZod<Omit<AzureConnectGraphState, 'CloudConnected' | 'LastAzureAccessToken' | 'Messages'>>);
+} as TypeToZod<
+  Omit<AzureConnectGraphState, 'CloudConnected' | 'LastAzureAccessToken' | 'Messages'>
+>);
 
 export type AzureConnectSchema = z.infer<typeof AzureConnectSchema>;
 
@@ -285,7 +271,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
 
                       const status = await eacSvc.Status(
                         commitResp.EnterpriseLookup,
-                        commitResp.CommitID
+                        commitResp.CommitID,
                       );
 
                       return JSON.stringify(status);
@@ -342,8 +328,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                                   Details: {
                                     Type: 'Format',
                                     Name: 'Core CALZ',
-                                    Description:
-                                      'The core CALZ to use for the enterprise.',
+                                    Description: 'The core CALZ to use for the enterprise.',
                                     Order: 1,
                                     Template: {
                                       Content:
@@ -377,7 +362,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
 
                       const status = await eacSvc.Status(
                         commitResp.EnterpriseLookup,
-                        commitResp.CommitID
+                        commitResp.CommitID,
                       );
 
                       return JSON.stringify(status);
@@ -397,15 +382,13 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                   Action: async (input: CloudInfrastructureSchema, _, cfg) => {
                     const state = cfg!.configurable!.RuntimeContext.State;
 
-                    const gettingStarted: ThinkyGettingStartedState =
-                      state.GettingStarted;
+                    const gettingStarted: ThinkyGettingStartedState = state.GettingStarted;
 
                     const jwt = state.JWT as string;
 
                     const cloudLookup = Object.keys(state.EaC!.Clouds || {})[0];
 
-                    const resGroupLookup =
-                      gettingStarted.CurrentCALZ!.ResourceGroupLookup;
+                    const resGroupLookup = gettingStarted.CurrentCALZ!.ResourceGroupLookup;
 
                     const resLookup = input.ResourceLookup;
 
@@ -430,8 +413,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                                   Details: {
                                     Type: 'Format',
                                     Name: 'AI Infrastructure Launch Pad',
-                                    Description:
-                                      'The AI Infrastructure Launch Pad.',
+                                    Description: 'The AI Infrastructure Launch Pad.',
                                     Order: 1,
                                     Template: {
                                       Content:
@@ -461,7 +443,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
 
                       const status = await eacSvc.Status(
                         commitResp.EnterpriseLookup,
-                        commitResp.CommitID
+                        commitResp.CommitID,
                       );
 
                       return JSON.stringify(status);
@@ -498,17 +480,15 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               },
             } as EaCToolNeuron,
           },
-          'thinky-getting-started:cloud:azure-connect:subscriptions':
-            this.buildCloudAzureConnectSubscriptionsCircuit(),
-          'thinky-getting-started:cloud:azure-connect':
-            this.buildCloudAzureConnectCircuit(),
-          'thinky-getting-started:cloud:calz:resource-group':
-            this.buildCloudCALZResourceGroupCircuit(),
+          'thinky-getting-started:cloud:azure-connect:subscriptions': this
+            .buildCloudAzureConnectSubscriptionsCircuit(),
+          'thinky-getting-started:cloud:azure-connect': this.buildCloudAzureConnectCircuit(),
+          'thinky-getting-started:cloud:calz:resource-group': this
+            .buildCloudCALZResourceGroupCircuit(),
           'thinky-getting-started:cloud:calz': this.buildCloudCALZCircuit(),
-          'thinky-getting-started:cloud:infrastructure:details':
-            this.buildCloudInfrastructureDetailsCircuit(),
-          'thinky-getting-started:cloud:infrastructure':
-            this.buildCloudInfrastructureCircuit(),
+          'thinky-getting-started:cloud:infrastructure:details': this
+            .buildCloudInfrastructureDetailsCircuit(),
+          'thinky-getting-started:cloud:infrastructure': this.buildCloudInfrastructureCircuit(),
           'thinky-getting-started:cloud': this.buildCloudCircuit(),
           'thinky-getting-started': this.buildGettingStartedCircuit(),
         },
@@ -536,10 +516,10 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             BootstrapOutput(
               state: ThinkyGettingStartedGraphStateSchema,
               _,
-              cfg
+              cfg,
             ) {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return {
                 ...state,
@@ -555,10 +535,10 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
             BootstrapOutput(
               state: ThinkyGettingStartedGraphStateSchema,
               _,
-              cfg
+              cfg,
             ) {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return {
                 ...state,
@@ -578,8 +558,8 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               [END]: END,
             },
             Condition: (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return state.HasConfiguredInfrastructure
                 ? END
@@ -596,12 +576,10 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               [END]: END,
             },
             Condition: (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
-              return state.HasConfiguredCloud && !gettingStarted.CurrentCloud
-                ? 'calz'
-                : END;
+              return state.HasConfiguredCloud && !gettingStarted.CurrentCloud ? 'calz' : END;
             },
           },
           calz: {
@@ -610,12 +588,10 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               [END]: END,
             },
             Condition: (state: ThinkyGettingStartedGraphStateSchema, cfg) => {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
-              return state.HasConfiguredCALZ && !gettingStarted.CurrentCALZ
-                ? 'infra'
-                : END;
+              return state.HasConfiguredCALZ && !gettingStarted.CurrentCALZ ? 'infra' : END;
             },
           },
           infra: END,
@@ -642,7 +618,8 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
         Neurons: {
           'azure-login': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Right now, your only job is to get the user connected with Azure. You should be friendly, end inspire confidence in the user, so they click. We need to link the user to \`/dashboard/thinky/connect/azure/signin?success_url=/dashboard/getting-started\`. It has to be that exact, absolute path, with no host/origin. Provide your response as Markdown, without any titles, just your responses as markdown. Markdwon example would be \`[...]('/dashboard/thinky/connect/azure/signin?success_url=/dashboard/getting-started')\``,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Right now, your only job is to get the user connected with Azure. You should be friendly, end inspire confidence in the user, so they click. We need to link the user to \`/dashboard/thinky/connect/azure/signin?success_url=/dashboard/getting-started\`. It has to be that exact, absolute path, with no host/origin. Provide your response as Markdown, without any titles, just your responses as markdown. Markdwon example would be \`[...]('/dashboard/thinky/connect/azure/signin?success_url=/dashboard/getting-started')\``,
             NewMessages: [
               new HumanMessage('Hi'),
             ] as BaseMessagePromptTemplateLike[],
@@ -657,20 +634,18 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
           } as EaCChatPromptNeuron,
           'azure-sub': {
             Type: 'Circuit',
-            CircuitLookup:
-              'thinky-getting-started:cloud:azure-connect:subscriptions',
+            CircuitLookup: 'thinky-getting-started:cloud:azure-connect:subscriptions',
             BootstrapOutput(state: AzureConnectGraphState) {
               return {
                 ...state,
-                Messages: state.Messages?.length
-                  ? [state.Messages.slice(-1)[0]]
-                  : [],
+                Messages: state.Messages?.length ? [state.Messages.slice(-1)[0]] : [],
               } as AzureConnectGraphState;
             },
           } as EaCCircuitNeuron,
           'azure-sub-commit:message': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant.  Let the user know that you are storing their azure connection information, and you'll be back with them shortly once complete.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant.  Let the user know that you are storing their azure connection information, and you'll be back with them shortly once complete.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -721,7 +696,8 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
           } as Partial<EaCNeuron>,
           'azure-sub:complete': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant.  Let the user know that you have completed storing their Azure connection information and that you are analyzing next steps, and will be back with them shortly.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant.  Let the user know that you have completed storing their Azure connection information and that you are analyzing next steps, and will be back with them shortly.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -743,8 +719,8 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               sub: 'azure-sub',
             },
             Condition: (_, cfg) => {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return gettingStarted.AzureAccessToken ? 'sub' : 'login';
             },
@@ -756,7 +732,7 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
               tool: 'azure-sub-commit:tool',
               [END]: END,
             },
-            Condition: (state: AzureConnectGraphState, cfg) => {
+            Condition: (state: AzureConnectGraphState) => {
               if (
                 state.Verified &&
                 (state.SubscriptionID ||
@@ -796,7 +772,8 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
         Synapses: {
           '': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you are here to help them connect their Azure Subscription. They can select an existing subscription, or provide a name for a new subscription to continue. Once picking a new name, they will have to select a Billing Account. Favor showing the user the name of existing resources, and be short and concise in your responses. Start with subscription information, and only ask about/show billing account information if creating a new subscription. Do your best to talk the user through getting their subscription information, and make sure that you get the user to confirm their subscription information before calling the tool. Once the user has confirmed their subscription, you can call the tool.
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Let the user know that you are here to help them connect their Azure Subscription. They can select an existing subscription, or provide a name for a new subscription to continue. Once picking a new name, they will have to select a Billing Account. Favor showing the user the name of existing resources, and be short and concise in your responses. Start with subscription information, and only ask about/show billing account information if creating a new subscription. Do your best to talk the user through getting their subscription information, and make sure that you get the user to confirm their subscription information before calling the tool. Once the user has confirmed their subscription, you can call the tool.
   
 Existing Subscriptions (JSON Format with key 'ID' and value 'Name'):
 {Subscriptions}  
@@ -838,7 +815,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.tool_calls![0].function;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as AzureConnectSchema;
 
                 return {
@@ -852,7 +829,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.function_call;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as AzureConnectSchema;
 
                 return {
@@ -888,15 +865,14 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
             BootstrapOutput(state: CloudCALZGraphState) {
               return {
                 ...state,
-                Messages: state.Messages?.length
-                  ? [state.Messages.slice(-1)[0]]
-                  : [],
+                Messages: state.Messages?.length ? [state.Messages.slice(-1)[0]] : [],
               } as CloudCALZGraphState;
             },
           } as EaCCircuitNeuron,
           'azure-calz-commit:message': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant.  Let the user know that you are creating their Cloud Application Landing Zone (CALZ), and you'll be back with them shortly once complete.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant.  Let the user know that you are creating their Cloud Application Landing Zone (CALZ), and you'll be back with them shortly once complete.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -921,8 +897,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                     return {
                       Delay: 10000,
                       Status,
-                      Operation:
-                        'Creating Initial Cloud Application Landing Zone',
+                      Operation: 'Creating Initial Cloud Application Landing Zone',
                     } as FathymEaCStatusInputSchema;
                   },
                 } as Partial<EaCNeuron>,
@@ -947,7 +922,8 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
           } as Partial<EaCNeuron>,
           'azure-calz:complete': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you have completed configuring their Cloud Application Landing Zone (CALZ) and that you are analyzing next steps, and will be back with them shortly.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Let the user know that you have completed configuring their Cloud Application Landing Zone (CALZ) and that you are analyzing next steps, and will be back with them shortly.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -970,7 +946,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
               tool: 'azure-calz-commit:tool',
               [END]: END,
             },
-            Condition: (state: CloudCALZGraphState, cfg) => {
+            Condition: (state: CloudCALZGraphState) => {
               if (state.Confirmed && state.ResourceGroupLookup) {
                 return ['message', 'tool'];
               }
@@ -1002,7 +978,8 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
         Neurons: {
           '': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you will help them collect the information you need to initialize their Cloud Application Landing Zone (CALZ). Once you have collected enough information to call the tool, make sure to confirm the information with the user. Once the user has confirmed, you can call the tool.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Let the user know that you will help them collect the information you need to initialize their Cloud Application Landing Zone (CALZ). Once you have collected enough information to call the tool, make sure to confirm the information with the user. Once the user has confirmed, you can call the tool.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -1016,14 +993,13 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
               ],
             },
             BootstrapInput(state: CloudCALZGraphState, _, cfg) {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return {
-                Messages:
-                  !gettingStarted.CurrentCloud && state.Messages?.length
-                    ? [state.Messages.slice(-1)[0]]
-                    : state.Messages,
+                Messages: !gettingStarted.CurrentCloud && state.Messages?.length
+                  ? [state.Messages.slice(-1)[0]]
+                  : state.Messages,
               } as CloudCALZGraphState;
             },
             BootstrapOutput(msg: BaseMessage) {
@@ -1069,20 +1045,18 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
         Neurons: {
           'azure-infra': {
             Type: 'Circuit',
-            CircuitLookup:
-              'thinky-getting-started:cloud:infrastructure:details',
+            CircuitLookup: 'thinky-getting-started:cloud:infrastructure:details',
             BootstrapOutput(state: CloudInfrastructureGraphState) {
               return {
                 ...state,
-                Messages: state.Messages?.length
-                  ? [state.Messages.slice(-1)[0]]
-                  : [],
+                Messages: state.Messages?.length ? [state.Messages.slice(-1)[0]] : [],
               } as CloudInfrastructureGraphState;
             },
           } as EaCCircuitNeuron,
           'azure-infra-commit:message': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant.  Let the user know that you are creating their AI Infrastructure Launch Pad, and you'll be back with them shortly once complete.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant.  Let the user know that you are creating their AI Infrastructure Launch Pad, and you'll be back with them shortly once complete.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -1132,7 +1106,8 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
           } as Partial<EaCNeuron>,
           'azure-infra:complete': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you have completed setting up their AI Infrastructure Launch Pad and that you are analyzing next steps, and will be back with them shortly.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Let the user know that you have completed setting up their AI Infrastructure Launch Pad and that you are analyzing next steps, and will be back with them shortly.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -1190,7 +1165,8 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
         Neurons: {
           '': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Let the user know that you will help them collect the information you need to setup their AI Infrastructure Launch Pad. Make sure you aren't selecting the previously chosen 'ResourceGroupLookup', and instead are asking for the users AI Infrastructure resource name. Once you have collected enough information to call the tool, make sure to confirm the information with the user. Once the user has confirmed, you can call the tool.`,
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Let the user know that you will help them collect the information you need to setup their AI Infrastructure Launch Pad. Make sure you aren't selecting the previously chosen 'ResourceGroupLookup', and instead are asking for the users AI Infrastructure resource name. Once you have collected enough information to call the tool, make sure to confirm the information with the user. Once the user has confirmed, you can call the tool.`,
             NewMessages: [
               new MessagesPlaceholder('Messages'),
             ] as BaseMessagePromptTemplateLike[],
@@ -1204,14 +1180,13 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
               ],
             },
             BootstrapInput(state: CloudInfrastructureGraphState, _, cfg) {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return {
-                Messages:
-                  !gettingStarted.CurrentCALZ && state.Messages?.length
-                    ? [state.Messages.slice(-1)[0]]
-                    : state.Messages,
+                Messages: !gettingStarted.CurrentCALZ && state.Messages?.length
+                  ? [state.Messages.slice(-1)[0]]
+                  : state.Messages,
               } as CloudInfrastructureGraphState;
             },
             BootstrapOutput(msg: BaseMessage) {
@@ -1219,7 +1194,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.tool_calls![0].function;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as CloudInfrastructureSchema;
 
                 return {
@@ -1231,7 +1206,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.function_call;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as CloudInfrastructureSchema;
 
                 return {
@@ -1266,18 +1241,16 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
             BootstrapOutput(
               state: ThinkyGettingStartedGraphStateSchema,
               _,
-              cfg
+              cfg,
             ) {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               return {
                 ...state,
                 HasAzureAccessToken: !!gettingStarted.AzureAccessToken,
-                HasConfiguredCloud:
-                  state.HasConfiguredCloud || !!gettingStarted.CurrentCloud,
-                HasConfiguredCALZ:
-                  state.HasConfiguredCALZ || !!gettingStarted.CurrentCALZ,
+                HasConfiguredCloud: state.HasConfiguredCloud || !!gettingStarted.CurrentCloud,
+                HasConfiguredCALZ: state.HasConfiguredCALZ || !!gettingStarted.CurrentCALZ,
               } as ThinkyGettingStartedGraphStateSchema;
             },
           } as EaCCircuitNeuron,
@@ -1296,15 +1269,14 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 HasConfiguredCALZ,
                 HasConfiguredInfrastructure,
               }: ThinkyGettingStartedGraphStateSchema,
-              cfg
+              cfg,
             ) => {
-              const gettingStarted: ThinkyGettingStartedState =
-                cfg?.configurable?.RuntimeContext.State.GettingStarted;
+              const gettingStarted: ThinkyGettingStartedState = cfg?.configurable?.RuntimeContext
+                .State.GettingStarted;
 
               const lastMsg = Messages?.slice(-1)[0];
 
-              const isAiMsg =
-                lastMsg &&
+              const isAiMsg = lastMsg &&
                 (lastMsg instanceof AIMessage ||
                   lastMsg instanceof AIMessageChunk);
 
@@ -1342,14 +1314,14 @@ export function lastAiNotHumanMessages(messages?: BaseMessage[]) {
   return lastMessagesOfType(
     messages ?? [],
     [AIMessage.name, AIMessageChunk.name],
-    [HumanMessage.name, HumanMessageChunk.name]
+    [HumanMessage.name, HumanMessageChunk.name],
   );
 }
 
 export function lastMessagesOfType(
   messages: BaseMessage[],
   types: string[],
-  endTypes?: string[]
+  endTypes?: string[],
 ) {
   let hitEnd = false;
 
@@ -1360,9 +1332,7 @@ export function lastMessagesOfType(
       }
 
       if (
-        endTypes
-          ? endTypes.includes(msg.constructor.name)
-          : !types.includes(msg.constructor.name)
+        endTypes ? endTypes.includes(msg.constructor.name) : !types.includes(msg.constructor.name)
       ) {
         hitEnd = true;
       }

@@ -1,8 +1,4 @@
-import {
-  EaCModifierAsCode,
-  EverythingAsCodeClouds,
-  EverythingAsCodeIdentity,
-} from '@fathym/eac';
+import { EaCModifierAsCode, EverythingAsCodeClouds, EverythingAsCodeIdentity } from '@fathym/eac';
 import {
   DefaultModifierMiddlewareResolver,
   EaCRuntimeHandler,
@@ -32,9 +28,7 @@ export type ThinkyGettingStartedState = z.infer<
   typeof ThinkyGettingStartedState
 >;
 
-export class DefaultThinkyModifierHandlerResolver
-  implements ModifierHandlerResolver
-{
+export class DefaultThinkyModifierHandlerResolver implements ModifierHandlerResolver {
   public async Resolve(ioc: IoCContainer, modifier: EaCModifierAsCode) {
     let resolver: EaCRuntimeHandler | undefined;
 
@@ -44,7 +38,7 @@ export class DefaultThinkyModifierHandlerResolver
           const svc = await loadEaCSvc(ctx.State.JWT as string);
 
           const eac = (ctx.State.EaC = await svc.Get(
-            ctx.State.EnterpriseLookup as string
+            ctx.State.EnterpriseLookup as string,
           ));
 
           if (eac) {
@@ -52,7 +46,7 @@ export class DefaultThinkyModifierHandlerResolver
               ioc,
               req,
               eac,
-              ctx.Runtime.EaC
+              ctx.Runtime.EaC,
             );
           }
         }
@@ -74,22 +68,21 @@ export class DefaultThinkyModifierHandlerResolver
     ioc: IoCContainer,
     req: Request,
     eac: EverythingAsCodeClouds,
-    parentEaC: EverythingAsCodeIdentity
+    parentEaC: EverythingAsCodeIdentity,
   ): Promise<ThinkyGettingStartedState> {
     const cloudLookups = Object.keys(eac.Clouds || {});
 
-    const curCloud =
-      cloudLookups[0] && 'ID' in (eac.Clouds?.[cloudLookups[0]].Details || {})
-        ? eac.Clouds![cloudLookups[0]]
-        : undefined;
+    const curCloud = cloudLookups[0] && 'ID' in (eac.Clouds?.[cloudLookups[0]].Details || {})
+      ? eac.Clouds![cloudLookups[0]]
+      : undefined;
 
     const state = {
       AzureAccessToken: undefined,
       CurrentCloud: curCloud
         ? {
-            Lookup: cloudLookups[0],
-            Name: curCloud.Details!.Name!,
-          }
+          Lookup: cloudLookups[0],
+          Name: curCloud.Details!.Name!,
+        }
         : undefined,
     } as ThinkyGettingStartedState;
 
@@ -114,7 +107,7 @@ export class DefaultThinkyModifierHandlerResolver
 
       const oauthKv = await ioc.Resolve<Deno.Kv>(
         Deno.Kv,
-        provider.DatabaseLookup
+        provider.DatabaseLookup,
       );
 
       const currentAccTok = await oauthKv.get<string>([

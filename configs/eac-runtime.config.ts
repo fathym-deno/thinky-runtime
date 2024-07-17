@@ -1,8 +1,8 @@
-import { DefaultEaCConfig, defineEaCConfig, EaCRuntime } from '@fathym/eac/runtime';
+import { defineEaCConfig, EaCRuntime } from '@fathym/eac/runtime';
 import ThinkyRuntimePlugin from '../src/plugins/ThinkyRuntimePlugin.ts';
 
 export const config = defineEaCConfig({
-  Plugins: [...(DefaultEaCConfig.Plugins || []), new ThinkyRuntimePlugin()],
+  Plugins: [new ThinkyRuntimePlugin()],
   Server: {
     port: 6132,
   },

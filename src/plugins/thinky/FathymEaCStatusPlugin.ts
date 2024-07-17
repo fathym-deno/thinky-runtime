@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -19,11 +15,7 @@ import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
-import {
-  EaCStatus,
-  EaCStatusProcessingTypes,
-  loadEaCSvc,
-} from '@fathym/eac/api';
+import { EaCStatus, EaCStatusProcessingTypes, loadEaCSvc } from '@fathym/eac/api';
 import { delay } from 'https://deno.land/std@0.220.1/async/delay.ts';
 
 export const FathymEaCStatusGraphState = {
@@ -51,23 +43,23 @@ export const FathymEaCStatusInputSchema = z.object({
     .number()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   Messages: z
     .array(z.custom<EaCStatus>())
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   Operation: z
     .string()
     .describe(
-      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.'
+      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.',
     ),
   Status: z
     .custom<EaCStatus>()
     .describe(
-      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.'
+      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.',
     ),
 }); // as TypeToZod<
 //   FathymEaCStatusGraphState & {
@@ -101,8 +93,7 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-eac-status',
-                  Description:
-                    'Use this tool to get the status of an EaC commit operation.',
+                  Description: 'Use this tool to get the status of an EaC commit operation.',
                   Schema: z.custom<EaCStatus>(),
                   Action: async (status: EaCStatus, _, cfg) => {
                     const state = cfg!.configurable!.RuntimeContext.State;
@@ -114,7 +105,7 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
 
                       status = await eacSvc.Status(
                         state.EnterpriseLookup,
-                        status.ID
+                        status.ID,
                       );
 
                       return JSON.stringify(status);
@@ -140,12 +131,11 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
                 r.pipe(
                   RunnableLambda.from((toolRes: string) => {
                     return JSON.parse(toolRes);
-                  })
+                  }),
                 ),
             } as EaCToolNeuron,
           },
-          'fathym:eac:wait-for-status':
-            this.buildFathymEaCWaitForStatusCircuit(),
+          'fathym:eac:wait-for-status': this.buildFathymEaCWaitForStatusCircuit(),
         },
       },
       IoC: new IoCContainer(),
@@ -185,7 +175,8 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
           } as Partial<EaCNeuron>,
           'status:message': {
             Type: 'ChatPrompt',
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates. Make sure your answer always starts with two new markdown, to keep information separated.
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates. Make sure your answer always starts with two new markdown, to keep information separated.
             
 Operation Context:
 {Operation}`,
@@ -242,7 +233,7 @@ Operation Context:
         BootstrapInput(
           { Delay, Messages, Operation, Status }: FathymEaCStatusInputSchema,
           _,
-          cfg
+          cfg,
         ) {
           if (typeof Status === 'string') {
             Status = JSON.parse(Status) as EaCStatus;
