@@ -13,7 +13,6 @@ import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
 import { BaseMessage, HumanMessage, HumanMessageChunk } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
-import { RunnablePassthrough } from '../../../../synaptic/src/src.deps.ts';
 
 export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -168,18 +167,18 @@ Notes:
                 'welcome-chat': {
                   Type: 'Circuit',
                   CircuitLookup: 'thinky-public:welcome-chat',
-                  Bootstrap: (r) =>
-                    RunnablePassthrough.assign({
-                      IsNewUser: () => true,
-                      Username: () => '',
-                    })
-                      .pipe(r)
-                      .pipe(
-                        RunnablePassthrough.assign({
-                          Messages: (msg) => [msg],
-                          Welcomed: () => true,
-                        }),
-                      ),
+                  BootstrapInput() {
+                    return {
+                      IsNewUser: true,
+                      Username: '',
+                    };
+                  },
+                  BootstrapOutput(msg: BaseMessage) {
+                    return {
+                      Messages: [msg],
+                      Welcomed: true,
+                    };
+                  },
                 } as EaCCircuitNeuron,
               },
               Edges: {
