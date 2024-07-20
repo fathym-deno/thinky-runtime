@@ -1,7 +1,6 @@
 import ThinkyRuntimePlugin from '../../src/plugins/ThinkyRuntimePlugin.ts';
 import {
   assert,
-  assertStringIncludes,
   EverythingAsCodeDatabases,
   EverythingAsCodeSynaptic,
   HumanMessage,

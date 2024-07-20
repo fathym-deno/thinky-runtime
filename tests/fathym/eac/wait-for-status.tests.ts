@@ -2,7 +2,6 @@ import ThinkyRuntimePlugin from '../../../src/plugins/ThinkyRuntimePlugin.ts';
 import {
   assert,
   assertEquals,
-  assertStringIncludes,
   BaseMessage,
   EaCChatPromptNeuron,
   EaCDynamicToolDetails,
@@ -12,7 +11,6 @@ import {
   END,
   EverythingAsCodeDatabases,
   EverythingAsCodeSynaptic,
-  HumanMessage,
   MessagesPlaceholder,
   Runnable,
   RunnableLambda,

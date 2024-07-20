@@ -8,7 +8,6 @@ import {
   EaCNeuron,
   EaCToolNeuron,
   InferSynapticState,
-  TypeToZod,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';

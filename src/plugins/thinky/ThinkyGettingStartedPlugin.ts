@@ -25,9 +25,8 @@ import {
   HumanMessageChunk,
 } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { ThinkyGettingStartedState } from '../DefaultThinkyModifierHandlerResolver.ts';
-import { EaCStatus, FathymEaC, loadEaCSvc, waitForStatus } from '@fathym/eac/api';
+import { EaCStatus, FathymEaC, loadEaCSvc } from '@fathym/eac/api';
 import { EaCCloudAzureDetails, EaCCloudResourceFormatDetails } from '@fathym/eac';
 import { FathymEaCStatusInputSchema, FathymEaCStatusPlugin } from './FathymEaCStatusPlugin.ts';
 
@@ -396,11 +395,6 @@ export default class ThinkyGettingStartedPlugin implements EaCRuntimePlugin {
                       .split('-')
                       .map((p) => p.charAt(0))
                       .join('');
-
-                    const details = state.EaC!.Clouds![cloudLookup]
-                      .Details as EaCCloudAzureDetails;
-
-                    const servicePrincipalId = details!.ID;
 
                     const commitEaC: FathymEaC = {
                       EnterpriseLookup: state.EnterpriseLookup,

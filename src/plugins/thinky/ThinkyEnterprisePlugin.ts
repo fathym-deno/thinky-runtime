@@ -7,10 +7,9 @@ import {
   EaCLinearCircuitDetails,
   EaCToolExecutorNeuron,
 } from '@fathym/synaptic';
-import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import { BaseMessage, HumanMessage } from 'npm:@langchain/core/messages';
+import { BaseMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
 

@@ -2,22 +2,14 @@ import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fat
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
-  EaCCircuitAsCode,
   EaCCircuitNeuron,
   EaCDenoKVSaverPersistenceDetails,
   EaCGraphCircuitDetails,
   EaCLinearCircuitDetails,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import {
-  AIMessage,
-  AIMessageChunk,
-  BaseMessage,
-  HumanMessage,
-  HumanMessageChunk,
-} from 'npm:@langchain/core/messages';
+import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { EverythingAsCode } from '@fathym/eac';

@@ -2,9 +2,7 @@ import {
   EaCAzureADB2CProviderDetails,
   EaCAzureADProviderDetails,
   EaCDenoKVDatabaseDetails,
-  EaCESMDistributedFileSystem,
   EaCJWTValidationModifierDetails,
-  EaCKeepAliveModifierDetails,
 } from '@fathym/eac';
 import {
   EaCRuntimeConfig,
@@ -15,19 +13,10 @@ import {
   FathymEaCServicesPlugin,
 } from '@fathym/eac/runtime';
 import { IoCContainer } from '@fathym/ioc';
-import {
-  EaCAzureOpenAILLMDetails,
-  EaCDenoKVChatHistoryDetails,
-  EaCDenoKVSaverPersistenceDetails,
-  EaCMemorySaverPersistenceDetails,
-  EaCSynapticCircuitsProcessor,
-  EaCTavilySearchResultsToolDetails,
-  FathymSynapticPlugin,
-} from '@fathym/synaptic';
+import { EaCSynapticCircuitsProcessor, FathymSynapticPlugin } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from './DefaultThinkyProcessorHandlerResolver.ts';
 import ThinkyPlugin from './ThinkyPlugin.ts';
 import { DefaultThinkyModifierHandlerResolver } from './DefaultThinkyModifierHandlerResolver.ts';
-import { eacSetSecrets } from 'https://deno.land/x/fathym_everything_as_code@v0.0.413/src/utils/eac/helpers.ts';
 import ThinkyMSALPlugin from './ThinkyMSALPlugin.ts';
 import { EaCMSALProcessor } from '@fathym/msal';
 
@@ -69,11 +58,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
                 Hostname: 'thinky-runtime.azurewebsites.net',
               },
             },
-            ModifierResolvers: {
-              keepAlive: {
-                Priority: 5000,
-              },
-            },
+            ModifierResolvers: {},
             ApplicationResolvers: {
               circuits: {
                 PathPattern: '/circuits*',
@@ -158,14 +143,6 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               Name: 'Validate JWT',
               Description: 'Validate incoming JWTs to restrict access.',
             } as EaCJWTValidationModifierDetails,
-          },
-          keepAlive: {
-            Details: {
-              Type: 'KeepAlive',
-              Name: 'Deno KV Cache',
-              Description: 'Lightweight cache to use that stores data in a DenoKV database.',
-              KeepAlivePath: '/_eac/alive',
-            } as EaCKeepAliveModifierDetails,
           },
         },
         Databases: {

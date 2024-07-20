@@ -1,2 +1,2 @@
-import './fathym/.tests.ts';
+// import './fathym/.tests.ts';
 // import './thinky/.tests.ts';

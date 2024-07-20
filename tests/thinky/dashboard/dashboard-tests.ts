@@ -1,13 +1,11 @@
 import ThinkyRuntimePlugin from '../../../src/plugins/ThinkyRuntimePlugin.ts';
 import {
   assert,
-  assertStringIncludes,
   EverythingAsCodeDatabases,
   EverythingAsCodeSynaptic,
-  HumanMessage,
   Runnable,
-} from '../../test.deps.ts';
-import { buildTestIoC } from '../test-eac-setup.ts';
+} from '../../tests.deps.ts';
+import { buildTestIoC } from '../../test-eac-setup.ts';
 
 Deno.test('Thinky Dashboard Circuits Tests', async (t) => {
   const eac = {} as EverythingAsCodeSynaptic & EverythingAsCodeDatabases;

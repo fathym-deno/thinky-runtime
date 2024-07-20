@@ -1,19 +1,11 @@
-import {
-  ServerSentEventMessage,
-  ServerSentEventStream,
-} from 'https://deno.land/std@0.220.1/http/server_sent_event_stream.ts';
 import ThinkyRuntimePlugin from '../../../src/plugins/ThinkyRuntimePlugin.ts';
 import {
   assert,
-  assertStringIncludes,
-  customStringify,
   EverythingAsCodeDatabases,
   EverythingAsCodeSynaptic,
-  HumanMessage,
   Runnable,
-} from '../../test.deps.ts';
+} from '../../tests.deps.ts';
 import { buildTestIoC } from '../../test-eac-setup.ts';
-import { toText } from 'https://deno.land/std@0.220.1/streams/to_text.ts';
 
 Deno.test('Thinky Dashboard - Getting Started Circuits Tests', async (t) => {
   const eac = {} as EverythingAsCodeSynaptic & EverythingAsCodeDatabases;

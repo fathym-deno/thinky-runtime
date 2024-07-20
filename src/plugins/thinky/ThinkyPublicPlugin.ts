@@ -10,12 +10,7 @@ import {
 import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import {
-  AIMessage,
-  BaseMessage,
-  HumanMessage,
-  HumanMessageChunk,
-} from 'npm:@langchain/core/messages';
+import { BaseMessage, HumanMessage, HumanMessageChunk } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { RunnablePassthrough } from '../../../../synaptic/src/src.deps.ts';

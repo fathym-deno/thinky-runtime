@@ -16,7 +16,6 @@ import ThinkyPublicPlugin from './thinky/ThinkyPublicPlugin.ts';
 import ThinkyDashboardPlugin from './thinky/ThinkyDashboardPlugin.ts';
 import z from 'npm:zod';
 import { loadEaCAzureSvc } from '@fathym/eac/api';
-import { EaCESMDistributedFileSystem } from '@fathym/eac';
 
 export const FathymAzureBillingAccountsInputSchema = z.object({});
 
