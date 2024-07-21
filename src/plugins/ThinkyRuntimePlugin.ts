@@ -43,18 +43,18 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               Priority: 100,
             },
             ResolverConfigs: {
-              dev: {
+              localhost: {
                 Hostname: 'localhost',
                 Port: config?.Server?.port || 8000,
               },
-              dev2: {
+              '127.0.0.1': {
                 Hostname: '127.0.0.1',
                 Port: config?.Server?.port || 8000,
               },
-              thinky: {
+              'thinky-runtime.fathym.com': {
                 Hostname: 'thinky-runtime.fathym.com',
               },
-              eacAzure: {
+              'thinky-runtime.azurewebsites.net': {
                 Hostname: 'thinky-runtime.azurewebsites.net',
               },
             },
