@@ -51,6 +51,10 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
                 Hostname: '127.0.0.1',
                 Port: config?.Server?.port || 8000,
               },
+              'host.docker.internal': {
+                Hostname: 'host.docker.internal',
+                Port: config.Server.port || 8000,
+              },
               'thinky-runtime.fathym.com': {
                 Hostname: 'thinky-runtime.fathym.com',
               },
