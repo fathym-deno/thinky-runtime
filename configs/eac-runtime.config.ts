@@ -1,4 +1,9 @@
-import { DefaultEaCConfig, defineEaCConfig, EaCRuntime } from '@fathym/eac/runtime';
+import 'npm:html-to-text';
+import {
+  DefaultEaCConfig,
+  defineEaCConfig,
+  EaCRuntime,
+} from '@fathym/eac/runtime';
 import ThinkyRuntimePlugin from '../src/plugins/ThinkyRuntimePlugin.ts';
 
 export const config = defineEaCConfig({
