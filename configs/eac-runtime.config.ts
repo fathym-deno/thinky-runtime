@@ -1,4 +1,6 @@
-import 'npm:html-to-text';
+import * as _azureSearch from 'npm:@azure/search-documents';
+import * as _parse from 'npm:pdf-parse';
+import * as _htmlToText from 'npm:html-to-text';
 import {
   DefaultEaCConfig,
   defineEaCConfig,
