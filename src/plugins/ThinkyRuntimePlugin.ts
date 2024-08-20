@@ -1,9 +1,13 @@
 import {
+  EaCJWTValidationModifierDetails,
+} from '@fathym/eac/applications';
+import {
+  EaCDenoKVDatabaseDetails,
+} from '@fathym/eac/databases';
+import {
   EaCAzureADB2CProviderDetails,
   EaCAzureADProviderDetails,
-  EaCDenoKVDatabaseDetails,
-  EaCJWTValidationModifierDetails,
-} from '@fathym/eac';
+} from '@fathym/eac/identity';
 import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
@@ -11,7 +15,7 @@ import {
   FathymAzureContainerCheckPlugin,
   FathymDFSFileHandlerPlugin,
   FathymEaCServicesPlugin,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import { EaCSynapticCircuitsProcessor, FathymSynapticPlugin } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from './DefaultThinkyProcessorHandlerResolver.ts';

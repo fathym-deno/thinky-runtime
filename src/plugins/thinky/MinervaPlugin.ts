@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import { EaCChatHistoryNeuron, EaCChatPromptNeuron } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from '../DefaultThinkyProcessorHandlerResolver.ts';

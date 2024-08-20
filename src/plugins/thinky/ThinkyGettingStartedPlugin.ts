@@ -2,7 +2,7 @@ import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
   EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -31,11 +31,12 @@ import {
 } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
 import { ThinkyGettingStartedState } from '../DefaultThinkyModifierHandlerResolver.ts';
-import { EaCStatus, FathymEaC, loadEaCSvc } from '@fathym/eac/api';
+import { EaCStatus, FathymEaC } from '@fathym/eac-api';
+import { loadEaCSvc } from '@fathym/eac-api/client';
 import {
   EaCCloudAzureDetails,
   EaCCloudResourceFormatDetails,
-} from '@fathym/eac';
+} from '@fathym/eac/clouds';
 import { FathymEaCRemotesPlugin } from './FathymEaCRemotesPlugin.ts';
 
 export const ThinkyGettingStartedCircuitInputSchema = z.object({

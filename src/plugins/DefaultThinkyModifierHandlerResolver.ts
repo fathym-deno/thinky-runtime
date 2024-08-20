@@ -1,11 +1,13 @@
-import { EaCModifierAsCode, EverythingAsCodeClouds, EverythingAsCodeIdentity } from '@fathym/eac';
+import { EaCModifierAsCode } from '@fathym/eac/applications';
+import { EverythingAsCodeClouds } from '@fathym/eac/clouds';
+import { EverythingAsCodeIdentity } from '@fathym/eac/identity';
 import {
   DefaultModifierMiddlewareResolver,
   EaCRuntimeHandler,
   ModifierHandlerResolver,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
-import { loadEaCSvc } from '@fathym/eac/api';
+import { loadEaCSvc } from '@fathym/eac-api/client';
 import z from 'npm:zod';
 import { getCookies } from 'https://deno.land/std@0.220.1/http/cookie.ts';
 

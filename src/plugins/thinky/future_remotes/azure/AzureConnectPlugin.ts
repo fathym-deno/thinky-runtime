@@ -2,7 +2,7 @@ import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
   EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import {
   EaCAzureOpenAILLMDetails,
   EaCChatPromptNeuron,
@@ -23,8 +23,12 @@ import {
   FunctionMessage,
   HumanMessage,
 } from 'npm:@langchain/core/messages';
-import { EaCCloudAzureDetails, EverythingAsCodeClouds } from '@fathym/eac';
-import { EaCStatus, loadEaCSvc } from '@fathym/eac/api';
+import {
+  EaCCloudAzureDetails,
+  EverythingAsCodeClouds,
+} from '@fathym/eac/clouds';
+import { EaCStatus } from '@fathym/eac-api';
+import { loadEaCSvc } from '@fathym/eac-api/client';
 import { EverythingAsCodeSynaptic } from '@fathym/synaptic';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { END, START } from 'npm:@langchain/langgraph';
@@ -54,7 +58,8 @@ export const AzureConnectGraphState = {
     default: () => '',
   },
   Messages: {
-    value: (x?: BaseMessage[], y?: BaseMessage[]) => x?.concat(y || []),
+    value: (x?: BaseMessage[], y?: BaseMessage[]) =>
+      x?.concat(y || []) || y || [],
     default: () => [],
   },
   RedirectTo: {
@@ -449,6 +454,7 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
               ) {
                 return ['message', 'tool'];
               }
+
               return END;
             },
           },

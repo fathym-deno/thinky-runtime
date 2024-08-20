@@ -2,7 +2,7 @@ import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
   EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { EaCCircuitNeuron } from '@fathym/synaptic';
 import { FathymEaCStatusPlugin } from './future_remotes/FathymEaCStatusPlugin.ts';
 import AzureSubscriptionsPlugin from './future_remotes/azure/AzureSubscriptionsPlugin.ts';

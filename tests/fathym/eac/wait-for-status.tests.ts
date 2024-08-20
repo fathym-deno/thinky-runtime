@@ -18,7 +18,7 @@ import {
   z,
 } from '../../tests.deps.ts';
 import { buildTestIoC } from '../../test-eac-setup.ts';
-import { EaCStatus, EaCStatusProcessingTypes } from '@fathym/eac/api';
+import { EaCStatus, EaCStatusProcessingTypes } from '@fathym/eac-api';
 import { delay } from 'https://deno.land/std@0.220.1/async/delay.ts';
 
 Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {

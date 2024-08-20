@@ -2,10 +2,10 @@ import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
   EaCRuntimePluginConfig,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
-EaCAzureOpenAILLMDetails,
+  EaCAzureOpenAILLMDetails,
   EaCChatPromptNeuron,
   EaCCircuitNeuron,
   EaCDynamicToolDetails,
@@ -20,11 +20,8 @@ import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import {
-  EaCStatus,
-  EaCStatusProcessingTypes,
-  loadEaCSvc,
-} from '@fathym/eac/api';
+import { EaCStatus, EaCStatusProcessingTypes } from '@fathym/eac-api';
+import { loadEaCSvc } from '@fathym/eac-api/client';
 import { delay } from 'https://deno.land/std@0.220.1/async/delay.ts';
 
 export const FathymEaCStatusGraphState = {

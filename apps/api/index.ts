@@ -1,4 +1,4 @@
-import { EaCRuntimeHandlers } from '@fathym/eac/runtime';
+import { EaCRuntimeHandlers } from '@fathym/eac-runtime';
 
 export default {
   GET(_req, _ctx) {
