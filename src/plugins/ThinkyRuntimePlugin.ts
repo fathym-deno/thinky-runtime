@@ -1,9 +1,6 @@
-import {
-  EaCAzureADB2CProviderDetails,
-  EaCAzureADProviderDetails,
-  EaCDenoKVDatabaseDetails,
-  EaCJWTValidationModifierDetails,
-} from '@fathym/eac';
+import { EaCJWTValidationModifierDetails } from '@fathym/eac/applications';
+import { EaCDenoKVDatabaseDetails } from '@fathym/eac/databases';
+import { EaCAzureADB2CProviderDetails, EaCAzureADProviderDetails } from '@fathym/eac/identity';
 import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,
@@ -11,7 +8,7 @@ import {
   FathymAzureContainerCheckPlugin,
   FathymDFSFileHandlerPlugin,
   FathymEaCServicesPlugin,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import { EaCSynapticCircuitsProcessor, FathymSynapticPlugin } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from './DefaultThinkyProcessorHandlerResolver.ts';
@@ -50,6 +47,10 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               '127.0.0.1': {
                 Hostname: '127.0.0.1',
                 Port: config?.Server?.port || 8000,
+              },
+              'host.docker.internal': {
+                Hostname: 'host.docker.internal',
+                Port: config.Server.port || 8000,
               },
               'thinky-runtime.fathym.com': {
                 Hostname: 'thinky-runtime.fathym.com',

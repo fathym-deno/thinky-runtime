@@ -3,7 +3,7 @@ import {
   EaCApplicationProcessorConfig,
   EaCRuntimeEaC,
   ProcessorHandlerResolver,
-} from '@fathym/eac/runtime';
+} from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import { DefaultSynapticProcessorHandlerResolver } from '@fathym/synaptic';
 import { DefaultMSALProcessorHandlerResolver } from '@fathym/msal';

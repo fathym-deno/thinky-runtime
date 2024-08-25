@@ -1,5 +1,5 @@
 // TODO(ttrichar): MOVE TO @fathym/eac/runtim ref after EaCRuntimePluginDef export bug is fixed
-import { EaCRuntimePluginDef } from '@fathym/eac/runtime/src/runtime/config/EaCRuntimePluginDef.ts';
+import { EaCRuntimePluginDef } from '@fathym/eac-runtime/src/runtime/config/EaCRuntimePluginDef.ts';
 import { eacAIsRoot, eacDatabases } from './eacs.ts';
 import {
   EaCRuntimeConfig,

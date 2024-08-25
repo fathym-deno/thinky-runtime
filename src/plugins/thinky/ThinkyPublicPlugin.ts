@@ -1,4 +1,4 @@
-import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -12,7 +12,6 @@ import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
 import { BaseMessage, HumanMessage, HumanMessageChunk } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 
 export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -69,14 +68,11 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
                   Neurons: {
                     '': 'thinky-llm',
                   },
-                  Bootstrap: (r) =>
-                    r.pipe(
-                      RunnableLambda.from((msg: BaseMessage) => {
-                        return {
-                          Messages: [msg],
-                        };
-                      }),
-                    ),
+                  BootstrapOutput(msg: BaseMessage) {
+                    return {
+                      Messages: [msg],
+                    };
+                  },
                 } as EaCChatPromptNeuron,
               },
               Edges: {
@@ -145,24 +141,24 @@ Notes:
                 'open-chat': {
                   Type: 'Circuit',
                   CircuitLookup: 'thinky-public:open-chat',
-                  Bootstrap: (r) =>
-                    RunnableLambda.from(
-                      ({ Messages: msgs }: { Messages: BaseMessage[] }) => {
-                        return {
-                          Messages: msgs?.slice(-1) || [],
-                        };
-                      },
-                    )
-                      .pipe(r)
-                      .pipe(
-                        RunnableLambda.from(
-                          ({ Messages: msgs }: { Messages: BaseMessage[] }) => {
-                            return {
-                              Messages: msgs?.slice(-1) || [],
-                            };
-                          },
-                        ),
-                      ),
+                  BootstrapInput({
+                    Messages: msgs,
+                  }: {
+                    Messages: BaseMessage[];
+                  }) {
+                    return {
+                      Messages: msgs?.slice(-1) || [],
+                    };
+                  },
+                  BootstrapOutput({
+                    Messages: msgs,
+                  }: {
+                    Messages: BaseMessage[];
+                  }) {
+                    return {
+                      Messages: msgs?.slice(-1) || [],
+                    };
+                  },
                 } as EaCCircuitNeuron,
                 'welcome-chat': {
                   Type: 'Circuit',
@@ -208,20 +204,14 @@ Notes:
                 'welcome-chat': END,
                 'open-chat': END,
               },
-              Bootstrap: (r) =>
-                RunnableLambda.from(({ Input }: { Input: string }) => {
-                  return {
-                    Messages: Input ? [new HumanMessage(Input)] : [],
-                  };
-                })
-                  .pipe(r)
-                  .pipe(
-                    RunnableLambda.from(
-                      (state: { Messages: BaseMessage[] }) => {
-                        return state;
-                      },
-                    ),
-                  ),
+              BootstrapInput({ Input }: { Input: string }) {
+                return {
+                  Messages: Input ? [new HumanMessage(Input)] : [],
+                };
+              },
+              BootstrapOutput(state: { Messages: BaseMessage[] }) {
+                return state;
+              },
             } as EaCGraphCircuitDetails,
           },
         },

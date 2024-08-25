@@ -1,6 +1,6 @@
-import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { MSALPlugin } from '@fathym/msal';
-import { getCookies } from 'https://deno.land/std@0.220.1/http/cookie.ts';
+import { getCookies } from '@std/http';
 
 export default class ThinkyMSALPlugin implements EaCRuntimePlugin {
   constructor() {}

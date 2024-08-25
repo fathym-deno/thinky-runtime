@@ -1,4 +1,4 @@
-import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac/runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -11,7 +11,6 @@ import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
 import { BaseMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 
 export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -50,16 +49,8 @@ export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
                   Type: 'ToolExecutor',
                   ToolLookups: ['thinky|tavily'],
                   MessagesPath: '$.messages',
-                  Bootstrap: (r) => {
-                    return RunnableLambda.from(
-                      async (state: { messages: Array<BaseMessage> }) => {
-                        const response = await r.invoke(state);
-
-                        return {
-                          messages: response,
-                        };
-                      },
-                    );
+                  BootstrapOutput(msgs: BaseMessage[]) {
+                    return { messages: msgs };
                   },
                 } as EaCToolExecutorNeuron,
                 // action: {},
