@@ -11,7 +11,6 @@ import z from 'npm:zod';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
 import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 import { EverythingAsCode } from '@fathym/eac';
 import ThinkyGettingStartedPlugin from './ThinkyGettingStartedPlugin.ts';
 
@@ -111,12 +110,11 @@ export default class ThinkyDashboardPlugin implements EaCRuntimePlugin {
           },
           'getting-started': END,
         },
-        Bootstrap: (r) =>
-          RunnableLambda.from(({ Input }: ThinkyDashboardInputSchema) => {
-            return {
-              Messages: Input ? [new HumanMessage(Input)] : [],
-            };
-          }).pipe(r),
+        BootstrapInput({ Input }: ThinkyDashboardInputSchema) {
+          return {
+            Messages: Input ? [new HumanMessage(Input)] : [],
+          };
+        },
       } as EaCGraphCircuitDetails,
     };
   }
@@ -137,12 +135,11 @@ export default class ThinkyDashboardPlugin implements EaCRuntimePlugin {
             Neurons: {
               '': 'thinky-llm',
             },
-            Bootstrap: (r) =>
-              r.pipe(
-                RunnableLambda.from((msg: BaseMessage) => ({
-                  Messages: [msg],
-                })),
-              ),
+            BootstrapOutput(msg: BaseMessage) {
+              return {
+                Messages: [msg],
+              };
+            },
           } as EaCChatPromptNeuron,
         },
       } as EaCLinearCircuitDetails,

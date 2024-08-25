@@ -1,13 +1,5 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
-import {
-  EaCDynamicToolDetails,
-  EaCLinearCircuitDetails,
-  EaCToolNeuron,
-} from '@fathym/synaptic';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
+import { EaCDynamicToolDetails, EaCLinearCircuitDetails, EaCToolNeuron } from '@fathym/synaptic';
 import { EverythingAsCodeSynaptic } from '@fathym/synaptic';
 import { loadEaCAzureSvc, loadEaCSvc } from '@fathym/eac-api/client';
 import z from 'npm:zod';
@@ -62,13 +54,13 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                     "Use this tool to retrieve the user's current Azure billing accounts.",
                   Schema: FathymAzureBillingAccountsInputSchema,
                   Action: async (
-                    input: FathymAzureBillingAccountsInputSchema
+                    input: FathymAzureBillingAccountsInputSchema,
                   ) => {
                     const parentEaCSvc = await loadEaCSvc();
 
                     const jwt = await parentEaCSvc.JWT(
                       input.EnterpriseLookup,
-                      input.Username
+                      input.Username,
                     );
 
                     const eacAzureSvc = await loadEaCAzureSvc(jwt.Token);
@@ -76,7 +68,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                     try {
                       const billingAccounts = await eacAzureSvc.BillingAccounts(
                         input.EnterpriseLookup,
-                        input.AzureAccessTokenSecret
+                        input.AzureAccessTokenSecret,
                       );
 
                       const billingAcctDetails = billingAccounts.reduce(
@@ -93,17 +85,16 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                             }
 
                             case 'MicrosoftCustomerAgreement': {
-                              const billingProfiles =
-                                billingAccount.billingProfiles?.value || [];
+                              const billingProfiles = billingAccount.billingProfiles?.value || [];
 
                               billingProfiles.forEach((billingProfile) => {
-                                const invoiceSections =
-                                  billingProfile.invoiceSections?.value || [];
+                                const invoiceSections = billingProfile.invoiceSections?.value || [];
 
                                 invoiceSections.forEach((invoiceSection) => {
                                   acc[
                                     invoiceSection.id!
-                                  ] = `MCA - ${displayName} - Profile - ${billingProfile.displayName} - Invoice - ${invoiceSection.displayName}`;
+                                  ] =
+                                    `MCA - ${displayName} - Profile - ${billingProfile.displayName} - Invoice - ${invoiceSection.displayName}`;
                                 });
                               });
                               break;
@@ -117,8 +108,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                             }
 
                             case 'EnterpriseAgreement': {
-                              const enrollmentAccounts =
-                                billingAccount.enrollmentAccounts || [];
+                              const enrollmentAccounts = billingAccount.enrollmentAccounts || [];
 
                               enrollmentAccounts.forEach((account) => {
                                 acc[
@@ -131,7 +121,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
 
                           return acc;
                         },
-                        {} as Record<string, string>
+                        {} as Record<string, string>,
                       );
 
                       return JSON.stringify(billingAcctDetails);
@@ -145,17 +135,16 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-azure-subscriptions',
-                  Description:
-                    "Use this tool to retrieve the user's current Azure subscriptions.",
+                  Description: "Use this tool to retrieve the user's current Azure subscriptions.",
                   Schema: FathymAzureSubscriptionsInputSchema,
                   Action: async (
-                    input: FathymAzureSubscriptionsInputSchema
+                    input: FathymAzureSubscriptionsInputSchema,
                   ) => {
                     const parentEaCSvc = await loadEaCSvc();
 
                     const jwt = await parentEaCSvc.JWT(
                       input.EnterpriseLookup,
-                      input.Username
+                      input.Username,
                     );
 
                     const eacAzureSvc = await loadEaCAzureSvc(jwt.Token);
@@ -163,7 +152,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                     try {
                       const subs = await eacAzureSvc.Subscriptions(
                         input.EnterpriseLookup,
-                        input.AzureAccessTokenSecret
+                        input.AzureAccessTokenSecret,
                       );
 
                       const subDetails = subs.reduce((acc, sub) => {
@@ -183,15 +172,14 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-azure-tenants',
-                  Description:
-                    "Use this tool to retrieve the user's current Azure tenants.",
+                  Description: "Use this tool to retrieve the user's current Azure tenants.",
                   Schema: FathymAzureTenantsInputSchema,
                   Action: async (input: FathymAzureTenantsInputSchema) => {
                     const parentEaCSvc = await loadEaCSvc();
 
                     const jwt = await parentEaCSvc.JWT(
                       input.EnterpriseLookup,
-                      input.Username
+                      input.Username,
                     );
 
                     const eacAzureSvc = await loadEaCAzureSvc(jwt.Token);
@@ -199,7 +187,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
                     try {
                       const tenants = await eacAzureSvc.Tenants(
                         input.EnterpriseLookup,
-                        input.AzureAccessTokenSecret
+                        input.AzureAccessTokenSecret,
                       );
 
                       const tenantDetails = tenants.reduce((acc, tenant) => {
@@ -237,8 +225,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
             Details: {
               Type: 'Linear',
               Name: 'fathym-azure-billing-accounts',
-              Description:
-                "Use this tool to retrieve the user's current Azure billing accounts.",
+              Description: "Use this tool to retrieve the user's current Azure billing accounts.",
               InputSchema: FathymAzureBillingAccountsInputSchema,
               Neurons: {
                 '': `${AzureSubscriptionsPlugin.name}|billing-accounts`,
@@ -249,8 +236,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
             Details: {
               Type: 'Linear',
               Name: 'fathym-azure-subscriptions',
-              Description:
-                "Use this tool to retrieve the user's current Azure subscriptions.",
+              Description: "Use this tool to retrieve the user's current Azure subscriptions.",
               InputSchema: FathymAzureSubscriptionsInputSchema,
               Neurons: {
                 '': `${AzureSubscriptionsPlugin.name}|subscriptions`,
@@ -261,8 +247,7 @@ export default class AzureSubscriptionsPlugin implements EaCRuntimePlugin {
             Details: {
               Type: 'Linear',
               Name: 'fathym-azure-tenants',
-              Description:
-                "Use this tool to retrieve the user's current Azure tenants.",
+              Description: "Use this tool to retrieve the user's current Azure tenants.",
               InputSchema: FathymAzureTenantsInputSchema,
               Neurons: {
                 '': `${AzureSubscriptionsPlugin.name}|tenants`,

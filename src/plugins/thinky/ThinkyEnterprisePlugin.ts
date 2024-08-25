@@ -11,7 +11,6 @@ import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
 import { BaseMessage } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 
 export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
   constructor() {}

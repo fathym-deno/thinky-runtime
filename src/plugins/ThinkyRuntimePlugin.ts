@@ -1,13 +1,6 @@
-import {
-  EaCJWTValidationModifierDetails,
-} from '@fathym/eac/applications';
-import {
-  EaCDenoKVDatabaseDetails,
-} from '@fathym/eac/databases';
-import {
-  EaCAzureADB2CProviderDetails,
-  EaCAzureADProviderDetails,
-} from '@fathym/eac/identity';
+import { EaCJWTValidationModifierDetails } from '@fathym/eac/applications';
+import { EaCDenoKVDatabaseDetails } from '@fathym/eac/databases';
+import { EaCAzureADB2CProviderDetails, EaCAzureADProviderDetails } from '@fathym/eac/identity';
 import {
   EaCRuntimeConfig,
   EaCRuntimePlugin,

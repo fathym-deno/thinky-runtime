@@ -13,7 +13,6 @@ import {
   EverythingAsCodeSynaptic,
   MessagesPlaceholder,
   Runnable,
-  RunnableLambda,
   START,
   z,
 } from '../../tests.deps.ts';
@@ -55,12 +54,9 @@ Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {
         'test:fathym:eac:status': {
           Type: 'Tool',
           ToolLookup: 'thinky|test:fathym:eac:status',
-          Bootstrap: (r) =>
-            r.pipe(
-              RunnableLambda.from((toolRes: string) => {
-                return { Status: JSON.parse(toolRes) };
-              }),
-            ),
+          BootstrapOutput(toolRes: string) {
+            return { Status: JSON.parse(toolRes) };
+          },
         } as EaCToolNeuron,
       },
       'test:fathym:eac:wait-for-status': {
@@ -89,14 +85,13 @@ Deno.test('Fathym EaC WaitForStatus Tests', async (t) => {
           Neurons: {
             'status:tool': 'test:fathym:eac:status',
             'status:delay': {
-              Bootstrap: (r) =>
-                RunnableLambda.from(async (s) => {
-                  console.log('delaying');
-                  await delay(5000);
-                  console.log('delayed');
+              async BootstrapInput(s) {
+                console.log('delaying');
+                await delay(5000);
+                console.log('delayed');
 
-                  return s;
-                }).pipe(r),
+                return s;
+              },
             } as Partial<EaCNeuron>,
             'status:message': {
               Type: 'ChatPrompt',
@@ -112,21 +107,17 @@ EaC Status:
               Neurons: {
                 '': 'thinky-llm',
               },
-              Bootstrap: (r) =>
-                RunnableLambda.from((state) => {
-                  console.log('status:message=>input');
-                  console.log(state);
+              BootstrapInput(state) {
+                console.log('status:message=>input');
+                console.log(state);
 
-                  return state;
-                })
-                  .pipe(r)
-                  .pipe(
-                    RunnableLambda.from((msg: BaseMessage) => {
-                      return {
-                        Messages: [msg],
-                      };
-                    }),
-                  ),
+                return state;
+              },
+              BootstrapOutput(msg: BaseMessage) {
+                return {
+                  Messages: [msg],
+                };
+              },
             } as EaCChatPromptNeuron,
           },
           Edges: {
@@ -154,42 +145,34 @@ EaC Status:
             'status:message': 'status:delay',
             'status:delay': 'status:tool',
           },
-          Bootstrap: (r) =>
-            RunnableLambda.from(
-              ({
-                Operation,
-                Status,
-              }: {
-                Operation: string;
-                Status: EaCStatus | string;
-              }) => {
-                if (typeof Status === 'string') {
-                  Status = JSON.parse(Status) as EaCStatus;
-                }
+          BootstrapInput({
+            Operation,
+            Status,
+          }: {
+            Operation: string;
+            Status: EaCStatus | string;
+          }) {
+            if (typeof Status === 'string') {
+              Status = JSON.parse(Status) as EaCStatus;
+            }
 
-                return {
-                  Operation,
-                  Status,
-                };
-              },
-            )
-              .pipe(r)
-              .pipe(
-                RunnableLambda.from(
-                  ({
-                    Messages,
-                    Status,
-                  }: {
-                    Messages: BaseMessage[];
-                    Status: EaCStatus | string;
-                  }) => {
-                    return {
-                      Messages,
-                      Status,
-                    };
-                  },
-                ),
-              ),
+            return {
+              Operation,
+              Status,
+            };
+          },
+          BootstrapOutput({
+            Messages,
+            Status,
+          }: {
+            Messages: BaseMessage[];
+            Status: EaCStatus | string;
+          }) {
+            return {
+              Messages,
+              Status,
+            };
+          },
         } as EaCGraphCircuitDetails,
       },
     },

@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import {
   EaCAzureOpenAILLMDetails,
   EaCChatPromptNeuron,
@@ -18,15 +14,8 @@ import {
   TypeToZod,
 } from '@fathym/synaptic';
 import { z } from 'npm:zod';
-import {
-  BaseMessage,
-  FunctionMessage,
-  HumanMessage,
-} from 'npm:@langchain/core/messages';
-import {
-  EaCCloudAzureDetails,
-  EverythingAsCodeClouds,
-} from '@fathym/eac/clouds';
+import { BaseMessage, FunctionMessage, HumanMessage } from 'npm:@langchain/core/messages';
+import { EaCCloudAzureDetails, EverythingAsCodeClouds } from '@fathym/eac/clouds';
 import { EaCStatus } from '@fathym/eac-api';
 import { loadEaCSvc } from '@fathym/eac-api/client';
 import { EverythingAsCodeSynaptic } from '@fathym/synaptic';
@@ -58,8 +47,7 @@ export const AzureConnectGraphState = {
     default: () => '',
   },
   Messages: {
-    value: (x?: BaseMessage[], y?: BaseMessage[]) =>
-      x?.concat(y || []) || y || [],
+    value: (x?: BaseMessage[], y?: BaseMessage[]) => x?.concat(y || []) || y || [],
     default: () => [],
   },
   RedirectTo: {
@@ -96,19 +84,19 @@ export const AzureConnectGraphStateSchema = AzureInputSchema.pick({
     .string()
     .optional()
     .describe(
-      `This is the root URL where API requests should be redirected to.`
+      `This is the root URL where API requests should be redirected to.`,
     ),
   AzureAccessTokenSecret: z
     .string()
     .optional()
     .describe(
-      `This is the user's access token for Azure, to be used for further calls into Azure.`
+      `This is the user's access token for Azure, to be used for further calls into Azure.`,
     ),
   BillingAccount: z
     .string()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   CloudConnected: z
     .boolean()
@@ -117,25 +105,25 @@ export const AzureConnectGraphStateSchema = AzureInputSchema.pick({
   RedirectTo: z
     .string()
     .describe(
-      'The root URL that the system will redirect requests to on success.'
+      'The root URL that the system will redirect requests to on success.',
     ),
   SubscriptionName: z
     .string()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
   SubscriptionID: z
     .string()
     .optional()
     .describe(
-      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.'
+      'This value should only be set when using an existing subscription, and should not be defined when creating with a new `SubscriptionName`.',
     ),
   Verified: z
     .boolean()
     .optional()
     .describe(
-      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.'
+      'This value should be set to true, only once a user has explicitly confirmed their selections for (`SubscriptionName` and `BillingAccount`) or `SubscriptionID`.',
     ),
 } as TypeToZod<Omit<AzureConnectGraphState, 'EnterpriseLookup' | 'Messages' | 'Username'>>);
 
@@ -248,7 +236,7 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
 
                       const jwt = await parentEaCSvc.JWT(
                         input.EnterpriseLookup,
-                        input.Username
+                        input.Username,
                       );
 
                       const eacSvc = await loadEaCSvc(jwt.Token);
@@ -257,7 +245,7 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
 
                       const status = await eacSvc.Status(
                         commitResp.EnterpriseLookup,
-                        commitResp.CommitID
+                        commitResp.CommitID,
                       );
 
                       return JSON.stringify(status);
@@ -288,24 +276,23 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
               CircuitLookup: `${FathymEaCStatusPlugin.name}|wait-for-status`,
               BootstrapInput(s, _, cfg) {
                 cfg!.configurable.RuntimeContext = JSON.stringify(
-                  cfg!.configurable.RuntimeContext
+                  cfg!.configurable.RuntimeContext,
                 );
 
                 return s;
               },
-              BootstrapOutput(s, _, cfg) {
-                cfg!.configurable.RuntimeContext = JSON.parse(
-                  cfg!.configurable.RuntimeContext
-                );
+              // BootstrapOutput(s, _, cfg) {
+              //   cfg!.configurable.RuntimeContext = JSON.parse(
+              //     cfg!.configurable.RuntimeContext
+              //   );
 
-                return s;
-              },
+              //   return s;
+              // },
             } as EaCCircuitNeuron,
           },
-          [`${AzureConnectPlugin.name}|cloud|azure-connect|subscriptions`]:
-            this.buildCloudAzureConnectSubscriptionsCircuit(),
-          [`${AzureConnectPlugin.name}|cloud|azure-connect`]:
-            this.buildCloudAzureConnectCircuit(),
+          [`${AzureConnectPlugin.name}|cloud|azure-connect|subscriptions`]: this
+            .buildCloudAzureConnectSubscriptionsCircuit(),
+          [`${AzureConnectPlugin.name}|cloud|azure-connect`]: this.buildCloudAzureConnectCircuit(),
         },
       } as EverythingAsCodeSynaptic,
     };
@@ -322,7 +309,7 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
         InputSchema: AzureConnectInputSchema,
         State: AzureConnectGraphState,
         BootstrapInput(
-          input: AzureConnectInputSchema
+          input: AzureConnectInputSchema,
         ): Partial<AzureConnectGraphState> {
           return {
             APIRoot: input.APIRoot,
@@ -337,7 +324,8 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
           'azure-login': {
             Type: 'ChatPrompt',
             PersonalityLookup: `${AzureConnectPlugin.name}|Thinky`,
-            SystemMessage: `Right now, your only job is to get the user connected with Azure. You should be friendly, end inspire confidence in the user, so they click. We need to link the user to \`{APIRoot}/connect/azure/signin?success_url={RedirectTo}\`. It has to be that exact, absolute path, with no host/origin. Provide your response as Markdown, without any titles, just your responses as markdown. Markdwon example would be \`[...]('{APIRoot}/connect/azure/signin?success_url={RedirectTo}')\``,
+            SystemMessage:
+              `Right now, your only job is to get the user connected with Azure. You should be friendly, end inspire confidence in the user, so they click. We need to link the user to \`{APIRoot}/connect/azure/signin?success_url={RedirectTo}\`. It has to be that exact, absolute path, with no host/origin. Provide your response as Markdown, without any titles, just your responses as markdown. Markdwon example would be \`[...]('{APIRoot}/connect/azure/signin?success_url={RedirectTo}')\``,
             NewMessages: [new HumanMessage('Hi')],
             Neurons: {
               '': `${AzureConnectPlugin.name}|llm`,
@@ -354,16 +342,15 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
             BootstrapOutput(state: AzureConnectGraphState) {
               return {
                 ...state,
-                Messages: state.Messages?.length
-                  ? [state.Messages.slice(-1)[0]]
-                  : [],
+                Messages: state.Messages?.length ? [state.Messages.slice(-1)[0]] : [],
               } as AzureConnectGraphState;
             },
           } as EaCCircuitNeuron,
           'azure-sub-commit:message': {
             Type: 'ChatPrompt',
             PersonalityLookup: `${AzureConnectPlugin.name}|Thinky`,
-            SystemMessage: `Let the user know that you are storing their azure connection information, and you'll be back with them shortly once complete.`,
+            SystemMessage:
+              `Let the user know that you are storing their azure connection information, and you'll be back with them shortly once complete.`,
             NewMessages: [new MessagesPlaceholder('Messages')],
             Neurons: {
               '': `${AzureConnectPlugin.name}|llm`,
@@ -416,7 +403,8 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
           'azure-sub:complete': {
             Type: 'ChatPrompt',
             PersonalityLookup: `${AzureConnectPlugin.name}|Thinky`,
-            SystemMessage: `Let the user know that you have completed storing their Azure connection information and that you are analyzing next steps, and will be back with them shortly.`,
+            SystemMessage:
+              `Let the user know that you have completed storing their Azure connection information and that you are analyzing next steps, and will be back with them shortly.`,
             NewMessages: [new MessagesPlaceholder('Messages')],
             Neurons: {
               '': `${AzureConnectPlugin.name}|llm`,
@@ -480,7 +468,8 @@ export default class AzureConnectPlugin implements EaCRuntimePlugin {
           '': {
             Type: 'ChatPrompt',
             PersonalityLookup: `${AzureConnectPlugin.name}|Thinky`,
-            SystemMessage: `Let the user know that you are here to help them connect their Azure Subscription. They can select an existing subscription, or provide a name for a new subscription to continue. Once picking a new name, they will have to select a Billing Account. Favor showing the user the name of existing resources, and be short and concise in your responses. Start with subscription information, and only ask about/show billing account information if creating a new subscription. Do your best to talk the user through getting their subscription information, and make sure that you get the user to confirm their subscription information before calling the tool. Once the user has confirmed their subscription, you can call the tool.
+            SystemMessage:
+              `Let the user know that you are here to help them connect their Azure Subscription. They can select an existing subscription, or provide a name for a new subscription to continue. Once picking a new name, they will have to select a Billing Account. Favor showing the user the name of existing resources, and be short and concise in your responses. Start with subscription information, and only ask about/show billing account information if creating a new subscription. Do your best to talk the user through getting their subscription information, and make sure that you get the user to confirm their subscription information before calling the tool. Once the user has confirmed their subscription, you can call the tool.
   
 Existing Subscriptions (JSON Format with key 'ID' and value 'Name'):
 {Subscriptions}  
@@ -520,7 +509,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.tool_calls![0].function;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as AzureConnectToolSchema;
 
                 return {
@@ -534,7 +523,7 @@ Existing Billing Accounts (JSON Format with key 'ID' and value 'Name'):
                 const tool = msg.additional_kwargs.function_call;
 
                 const toolArgs = JSON.parse(
-                  tool.arguments
+                  tool.arguments,
                 ) as AzureConnectToolSchema;
 
                 return {

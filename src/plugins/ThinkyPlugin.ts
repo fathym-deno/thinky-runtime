@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCAzureOpenAILLMDetails,
@@ -11,7 +7,6 @@ import {
   EaCMemorySaverPersistenceDetails,
   EaCPassthroughNeuron,
   EaCTavilySearchResultsToolDetails,
-  EaCToolNeuron,
 } from '@fathym/synaptic';
 import MinervaPlugin from './thinky/MinervaPlugin.ts';
 import ThinkyEnterprisePlugin from './thinky/ThinkyEnterprisePlugin.ts';

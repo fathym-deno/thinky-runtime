@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { EaCCircuitNeuron } from '@fathym/synaptic';
 import { FathymEaCStatusPlugin } from './future_remotes/FathymEaCStatusPlugin.ts';
 import AzureSubscriptionsPlugin from './future_remotes/azure/AzureSubscriptionsPlugin.ts';
@@ -31,36 +27,36 @@ export class FathymEaCRemotesPlugin implements EaCRuntimePlugin {
               CircuitLookup: `${AzureConnectPlugin.name}|cloud|azure-connect`,
               BootstrapInput(s, _, cfg) {
                 cfg!.configurable.RuntimeContext = JSON.stringify(
-                  cfg!.configurable.RuntimeContext
+                  cfg!.configurable.RuntimeContext,
                 );
 
                 return s;
               },
-              BootstrapOutput(s, _, cfg) {
-                cfg!.configurable.RuntimeContext = JSON.parse(
-                  cfg!.configurable.RuntimeContext
-                );
+              // BootstrapOutput(s, _, cfg) {
+              //   cfg!.configurable.RuntimeContext = JSON.parse(
+              //     cfg!.configurable.RuntimeContext
+              //   );
 
-                return s;
-              },
+              //   return s;
+              // },
             } as EaCCircuitNeuron,
             [`${FathymEaCRemotesPlugin.name}|wait-for-status`]: {
               Type: 'Circuit',
               CircuitLookup: `${FathymEaCStatusPlugin.name}|wait-for-status`,
               BootstrapInput(s, _, cfg) {
                 cfg!.configurable.RuntimeContext = JSON.stringify(
-                  cfg!.configurable.RuntimeContext
+                  cfg!.configurable.RuntimeContext,
                 );
 
                 return s;
               },
-              BootstrapOutput(s, _, cfg) {
-                cfg!.configurable.RuntimeContext = JSON.parse(
-                  cfg!.configurable.RuntimeContext
-                );
+              // BootstrapOutput(s, _, cfg) {
+              //   cfg!.configurable.RuntimeContext = JSON.parse(
+              //     cfg!.configurable.RuntimeContext
+              //   );
 
-                return s;
-              },
+              //   return s;
+              // },
             } as EaCCircuitNeuron,
           },
         },

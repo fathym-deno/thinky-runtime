@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCAzureOpenAILLMDetails,
@@ -65,7 +61,7 @@ export const FathymEaCStatusInputSchema = FathymEaCStatusGraphStateSchema.pick({
     .number()
     .optional()
     .describe(
-      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.'
+      'This value should only be set when creating a new subscription, and should not be defined when using an existing `SubscriptionID`.',
     ),
 });
 
@@ -110,8 +106,7 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
                 Details: {
                   Type: 'Dynamic',
                   Name: 'fathym-eac-status',
-                  Description:
-                    'Use this tool to get the status of an EaC commit operation.',
+                  Description: 'Use this tool to get the status of an EaC commit operation.',
                   Schema: FathymEaCStatusToolSchema,
                   Action: async (status: FathymEaCStatusToolSchema) => {
                     try {
@@ -119,14 +114,14 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
 
                       const jwt = await parentEaCSvc.JWT(
                         status.EnterpriseLookup,
-                        status.Username
+                        status.Username,
                       );
 
                       const eacSvc = await loadEaCSvc(jwt.Token);
 
                       status = await eacSvc.Status(
                         status.EnterpriseLookup,
-                        status.ID
+                        status.ID,
                       );
 
                       return JSON.stringify(status);
@@ -157,8 +152,8 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
               },
             } as EaCToolNeuron,
           },
-          [`${FathymEaCStatusPlugin.name}|wait-for-status`]:
-            this.buildFathymEaCWaitForStatusCircuit(),
+          [`${FathymEaCStatusPlugin.name}|wait-for-status`]: this
+            .buildFathymEaCWaitForStatusCircuit(),
         },
       },
       IoC: new IoCContainer(),
@@ -177,7 +172,7 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
         BootstrapInput(
           { Delay, Operation, Status }: FathymEaCStatusInputSchema,
           _,
-          cfg
+          cfg,
         ) {
           if (typeof Status === 'string') {
             Status = JSON.parse(Status) as EaCStatus;
@@ -207,7 +202,7 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
           ],
           'status:delay': {
             async BootstrapInput(s, _, cfg) {
-              await delay(cfg!.configurable!.delay);
+              await delay(cfg!.configurable!.delay || 7500);
 
               return s;
             },
@@ -225,7 +220,8 @@ export class FathymEaCStatusPlugin implements EaCRuntimePlugin {
                 Status: JSON.stringify(state.Status),
               };
             },
-            SystemMessage: `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates. Make sure your answer always starts with two new markdown, to keep information separated.
+            SystemMessage:
+              `You are Thinky, the user's Fathym assistant. Inform the user of the status of their operation and let them know you'll check the status again shortly. Do your best to summarize the status in a short and concise way. The user can't give you more information, so do your best to summarize the Status information based on the Operation Context if not enough details are provided. Don't ask questions, just summarize, and let the user know you'll be back with updates. Make sure your answer always starts with two new markdown, to keep information separated.
             
 Operation Context:
 {Operation}`,

@@ -1,8 +1,4 @@
-import {
-  EaCRuntimeConfig,
-  EaCRuntimePlugin,
-  EaCRuntimePluginConfig,
-} from '@fathym/eac-runtime';
+import { EaCRuntimeConfig, EaCRuntimePlugin, EaCRuntimePluginConfig } from '@fathym/eac-runtime';
 import { IoCContainer } from '@fathym/ioc';
 import {
   EaCChatPromptNeuron,
@@ -14,13 +10,8 @@ import {
 import z from 'npm:zod';
 import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
 import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import {
-  BaseMessage,
-  HumanMessage,
-  HumanMessageChunk,
-} from 'npm:@langchain/core/messages';
+import { BaseMessage, HumanMessage, HumanMessageChunk } from 'npm:@langchain/core/messages';
 import { END, START } from 'npm:@langchain/langgraph';
-import { RunnableLambda } from 'npm:@langchain/core/runnables';
 
 export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
   constructor() {}
@@ -69,21 +60,19 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
               Neurons: {
                 agent: {
                   Type: 'ChatPrompt',
-                  SystemMessage: `You are a friendly assistant for Fathym, named Thinky. Please answer the user's question to the best of your ability.`,
+                  SystemMessage:
+                    `You are a friendly assistant for Fathym, named Thinky. Please answer the user's question to the best of your ability.`,
                   NewMessages: [
                     new MessagesPlaceholder('Messages'),
                   ] as BaseMessagePromptTemplateLike[],
                   Neurons: {
                     '': 'thinky-llm',
                   },
-                  Bootstrap: (r) =>
-                    r.pipe(
-                      RunnableLambda.from((msg: BaseMessage) => {
-                        return {
-                          Messages: [msg],
-                        };
-                      })
-                    ),
+                  BootstrapOutput(msg: BaseMessage) {
+                    return {
+                      Messages: [msg],
+                    };
+                  },
                 } as EaCChatPromptNeuron,
               },
               Edges: {
@@ -99,7 +88,8 @@ export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
               Neurons: {
                 '': {
                   Type: 'ChatPrompt',
-                  SystemMessage: `You are a friendly greeter for Fathym, named Thinky. Please greet the user in two messages. Each message should be short and to the point, and your response should be in Markdown, without the use of any Markdown titles, just your chat responses represented as Markdown.  The 2 messages will greet the user, and ask them to sign in/sign up at \`/dashboard\`, with NO origin/host domain, just the relative path.
+                  SystemMessage:
+                    `You are a friendly greeter for Fathym, named Thinky. Please greet the user in two messages. Each message should be short and to the point, and your response should be in Markdown, without the use of any Markdown titles, just your chat responses represented as Markdown.  The 2 messages will greet the user, and ask them to sign in/sign up at \`/dashboard\`, with NO origin/host domain, just the relative path.
                   
 Messages:
 1) The first message should 'welcome' the user as a new or existing user, and should use the users name if provided. It should provide a quick blurb about how you, Thinky, will be here to help them on their 'development journey'. Use the Ocotpus emoji at the end.
@@ -202,8 +192,8 @@ Notes:
 
                     const node = state.Welcomed
                       ? lastMsg &&
-                        (lastMsg instanceof HumanMessage ||
-                          lastMsg instanceof HumanMessageChunk)
+                          (lastMsg instanceof HumanMessage ||
+                            lastMsg instanceof HumanMessageChunk)
                         ? 'open'
                         : END
                       : 'welcome';
@@ -214,20 +204,14 @@ Notes:
                 'welcome-chat': END,
                 'open-chat': END,
               },
-              Bootstrap: (r) =>
-                RunnableLambda.from(({ Input }: { Input: string }) => {
-                  return {
-                    Messages: Input ? [new HumanMessage(Input)] : [],
-                  };
-                })
-                  .pipe(r)
-                  .pipe(
-                    RunnableLambda.from(
-                      (state: { Messages: BaseMessage[] }) => {
-                        return state;
-                      }
-                    )
-                  ),
+              BootstrapInput({ Input }: { Input: string }) {
+                return {
+                  Messages: Input ? [new HumanMessage(Input)] : [],
+                };
+              },
+              BootstrapOutput(state: { Messages: BaseMessage[] }) {
+                return state;
+              },
             } as EaCGraphCircuitDetails,
           },
         },
