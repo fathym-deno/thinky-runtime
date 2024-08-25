@@ -21,11 +21,11 @@
     "test": "deno test -A tests/tests.ts --coverage=cov"
   },
   "imports": {
-    "@fathym/common": "jsr:@fathym/common@0.2.22",
+    "@fathym/common": "jsr:@fathym/common@0.2.23",
     "@fathym/eac": "jsr:@fathym/eac@0.1.18",
     "@fathym/eac-api": "jsr:@fathym/eac-api@0.1.7",
     // "@fathym/eac-runtime": "../eac-runtime/mod.ts",
-    "@fathym/eac-runtime": "jsr:@fathym/eac-runtime@0.1.8",
+    "@fathym/eac-runtime": "jsr:@fathym/eac-runtime@0.1.11",
     "@fathym/ioc": "jsr:@fathym/ioc@0.0.12",
     "@fathym/msal": "jsr:@fathym/msal@0.0.37",
     // "@fathym/synaptic": "../synaptic/mod.ts",
