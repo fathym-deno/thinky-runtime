@@ -13,9 +13,9 @@ import {
   TypeToZod,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { BaseMessage } from 'npm:@langchain/core/messages';
-import { END, START } from 'npm:@langchain/langgraph';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { BaseMessage } from '@langchain/core/messages';
+import { END, START } from '@langchain/langgraph';
 import { EaCStatus, EaCStatusProcessingTypes } from '@fathym/eac-api';
 import { loadEaCSvc } from '@fathym/eac-api/client';
 import { delay } from 'https://deno.land/std@0.220.1/async/delay.ts';

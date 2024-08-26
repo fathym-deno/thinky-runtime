@@ -8,10 +8,10 @@ import {
   EaCLinearCircuitDetails,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import { BaseMessage, HumanMessage, HumanMessageChunk } from 'npm:@langchain/core/messages';
-import { END, START } from 'npm:@langchain/langgraph';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { BaseMessagePromptTemplateLike } from '@langchain/core/prompts';
+import { BaseMessage, HumanMessage, HumanMessageChunk } from '@langchain/core/messages';
+import { END, START } from '@langchain/langgraph';
 
 export default class ThinkyPublicPlugin implements EaCRuntimePlugin {
   constructor() {}

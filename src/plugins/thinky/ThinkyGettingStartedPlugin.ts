@@ -16,16 +16,16 @@ import {
   TypeToZod,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { BaseMessagePromptTemplateLike } from '@langchain/core/prompts';
 import {
   AIMessage,
   AIMessageChunk,
   BaseMessage,
   FunctionMessage,
   HumanMessage,
-} from 'npm:@langchain/core/messages';
-import { END, START } from 'npm:@langchain/langgraph';
+} from '@langchain/core/messages';
+import { END, START } from '@langchain/langgraph';
 import { ThinkyGettingStartedState } from '../DefaultThinkyModifierHandlerResolver.ts';
 import { EaCStatus, FathymEaC } from '@fathym/eac-api';
 import { loadEaCSvc } from '@fathym/eac-api/client';

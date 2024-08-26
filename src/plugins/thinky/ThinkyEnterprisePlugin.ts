@@ -7,10 +7,10 @@ import {
   EaCLinearCircuitDetails,
   EaCToolExecutorNeuron,
 } from '@fathym/synaptic';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import { BaseMessage } from 'npm:@langchain/core/messages';
-import { END, START } from 'npm:@langchain/langgraph';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { BaseMessagePromptTemplateLike } from '@langchain/core/prompts';
+import { BaseMessage } from '@langchain/core/messages';
+import { END, START } from '@langchain/langgraph';
 
 export default class ThinkyEnterprisePlugin implements EaCRuntimePlugin {
   constructor() {}

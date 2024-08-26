@@ -8,9 +8,9 @@ import {
   EaCLinearCircuitDetails,
 } from '@fathym/synaptic';
 import z from 'npm:zod';
-import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
-import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage } from 'npm:@langchain/core/messages';
-import { END, START } from 'npm:@langchain/langgraph';
+import { BaseMessagePromptTemplateLike } from '@langchain/core/prompts';
+import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage } from '@langchain/core/messages';
+import { END, START } from '@langchain/langgraph';
 import { EverythingAsCode } from '@fathym/eac';
 import ThinkyGettingStartedPlugin from './ThinkyGettingStartedPlugin.ts';
 

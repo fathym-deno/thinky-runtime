@@ -14,13 +14,13 @@ import {
   TypeToZod,
 } from '@fathym/synaptic';
 import { z } from 'npm:zod';
-import { BaseMessage, FunctionMessage, HumanMessage } from 'npm:@langchain/core/messages';
+import { BaseMessage, FunctionMessage, HumanMessage } from '@langchain/core/messages';
 import { EaCCloudAzureDetails, EverythingAsCodeClouds } from '@fathym/eac/clouds';
 import { EaCStatus } from '@fathym/eac-api';
 import { loadEaCSvc } from '@fathym/eac-api/client';
 import { EverythingAsCodeSynaptic } from '@fathym/synaptic';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { END, START } from 'npm:@langchain/langgraph';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { END, START } from '@langchain/langgraph';
 import AzureSubscriptionsPlugin from './AzureSubscriptionsPlugin.ts';
 import { AzureInputSchema } from './AzureInputSchema.ts';
 import { FathymEaCStatusPlugin } from '../FathymEaCStatusPlugin.ts';

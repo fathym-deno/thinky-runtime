@@ -4,8 +4,8 @@ import { IoCContainer } from '@fathym/ioc';
 import { EaCChatHistoryNeuron, EaCChatPromptNeuron } from '@fathym/synaptic';
 import { DefaultThinkyProcessorHandlerResolver } from '../DefaultThinkyProcessorHandlerResolver.ts';
 import z from 'npm:zod';
-import { MessagesPlaceholder } from 'npm:@langchain/core/prompts';
-import { BaseMessagePromptTemplateLike } from 'npm:@langchain/core/prompts';
+import { MessagesPlaceholder } from '@langchain/core/prompts';
+import { BaseMessagePromptTemplateLike } from '@langchain/core/prompts';
 
 export default class MinervaPlugin implements EaCRuntimePlugin {
   constructor() {}
