@@ -1,4 +1,4 @@
-import { EaCJWTValidationModifierDetails } from '@fathym/eac/applications';
+import { EaCJWTValidationModifierDetails, EaCRedirectProcessor } from '@fathym/eac/applications';
 import { EaCDenoKVDatabaseDetails } from '@fathym/eac/databases';
 import { EaCAzureADB2CProviderDetails, EaCAzureADProviderDetails } from '@fathym/eac/identity';
 import {
@@ -63,7 +63,7 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
             ApplicationResolvers: {
               circuits: {
                 PathPattern: '/circuits*',
-                Priority: 100,
+                Priority: 300,
               },
               msal: {
                 PathPattern: '/connect/azure/*',
@@ -71,6 +71,10 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               },
               'public-circuits': {
                 PathPattern: '/public-circuits*',
+                Priority: 300,
+              },
+              root: {
+                PathPattern: '*',
                 Priority: 100,
               },
             },
@@ -130,6 +134,12 @@ export default class ThinkyRuntimePlugin implements EaCRuntimePlugin {
               // Excludes: ['ent-chat:agent', 'ent-chat:action'],
               Includes: ['thinky-public'],
             } as EaCSynapticCircuitsProcessor,
+          },
+          root: {
+            Processor: {
+              Type: 'Redirect',
+              Redirect: 'https://www.fathym.com',
+            } as EaCRedirectProcessor,
           },
         },
         Modifiers: {
